@@ -859,6 +859,7 @@ public class ControllerFacade implements Authorizable {
             resources.add(ResourceFactory.getDataResource(processorResource));
             resources.add(ResourceFactory.getProvenanceDataResource(processorResource));
             resources.add(ResourceFactory.getPolicyResource(processorResource));
+            resources.add(ResourceFactory.getRunStatusResource(processorResource));
         }
 
         // add each label

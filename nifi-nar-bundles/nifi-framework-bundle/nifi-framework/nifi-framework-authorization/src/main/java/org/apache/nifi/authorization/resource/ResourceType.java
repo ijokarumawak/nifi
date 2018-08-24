@@ -39,6 +39,7 @@ public enum ResourceType {
     DataTransfer("/data-transfer"),
     System("/system"),
     RestrictedComponents("/restricted-components"),
+    RunStatus("/run-status"),
     Template("/templates"),
     Tenant("/tenants");
 

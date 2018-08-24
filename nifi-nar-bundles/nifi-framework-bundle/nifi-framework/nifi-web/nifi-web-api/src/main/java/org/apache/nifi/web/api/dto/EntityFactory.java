@@ -204,6 +204,7 @@ public final class EntityFactory {
         entity.setRevision(revision);
         if (dto != null) {
             entity.setPermissions(permissions);
+            // TODO: setRunStatusPermissions;
             entity.setStatus(status);
             entity.setId(dto.getId());
             entity.setInputRequirement(dto.getInputRequirement());

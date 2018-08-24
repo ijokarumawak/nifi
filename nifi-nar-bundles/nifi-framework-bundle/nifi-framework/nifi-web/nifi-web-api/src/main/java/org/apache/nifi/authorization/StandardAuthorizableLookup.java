@@ -26,6 +26,7 @@ import org.apache.nifi.authorization.resource.ProvenanceDataAuthorizable;
 import org.apache.nifi.authorization.resource.ResourceFactory;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.resource.RestrictedComponentsAuthorizableFactory;
+import org.apache.nifi.authorization.resource.RunStatusAuthorizable;
 import org.apache.nifi.authorization.resource.TenantAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.bundle.BundleCoordinate;
@@ -482,49 +483,58 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
         }
 
         // if this is a policy, data or a provenance event resource, there should be another resource type
-        if (ResourceType.Policy.equals(resourceType) || ResourceType.Data.equals(resourceType) || ResourceType.DataTransfer.equals(resourceType) || ResourceType.ProvenanceData.equals(resourceType)) {
-            final ResourceType primaryResourceType = resourceType;
-            resourceType = null;
+        switch (resourceType) {
+            case Policy:
+            case Data:
+            case DataTransfer:
+            case ProvenanceData:
+            case RunStatus:
+                final ResourceType primaryResourceType = resourceType;
+                resourceType = null;
 
-            // get the resource type
-            resource = StringUtils.substringAfter(resource, primaryResourceType.getValue());
+                // get the resource type
+                resource = StringUtils.substringAfter(resource, primaryResourceType.getValue());
 
-            for (ResourceType type : ResourceType.values()) {
-                if (resource.equals(type.getValue()) || resource.startsWith(type.getValue() + "/")) {
-                    resourceType = type;
-                }
-            }
-
-            if (resourceType == null) {
-                throw new ResourceNotFoundException("Unrecognized base resource: " + resource);
-            }
-
-            // must either be a policy, event, or data transfer
-            if (ResourceType.Policy.equals(primaryResourceType)) {
-                return new AccessPolicyAuthorizable(getAccessPolicy(resourceType, resource));
-            } else if (ResourceType.Data.equals(primaryResourceType)) {
-                return new DataAuthorizable(getAccessPolicy(resourceType, resource));
-            } else if (ResourceType.ProvenanceData.equals(primaryResourceType)) {
-                return new ProvenanceDataAuthorizable(getAccessPolicy(resourceType, resource));
-            } else {
-                return new DataTransferAuthorizable(getAccessPolicy(resourceType, resource));
-            }
-        } else if (ResourceType.RestrictedComponents.equals(resourceType)) {
-            final String slashRequiredPermission = StringUtils.substringAfter(resource, resourceType.getValue());
-
-            if (slashRequiredPermission.startsWith("/")) {
-                final RequiredPermission requiredPermission = RequiredPermission.valueOfPermissionIdentifier(slashRequiredPermission.substring(1));
-
-                if (requiredPermission == null) {
-                    throw new ResourceNotFoundException("Unrecognized resource: " + resource);
+                for (ResourceType type : ResourceType.values()) {
+                    if (resource.equals(type.getValue()) || resource.startsWith(type.getValue() + "/")) {
+                        resourceType = type;
+                    }
                 }
 
-                return getRestrictedComponents(requiredPermission);
-            } else {
-                return getRestrictedComponents();
-            }
-        } else {
-            return getAccessPolicy(resourceType, resource);
+                if (resourceType == null) {
+                    throw new ResourceNotFoundException("Unrecognized base resource: " + resource);
+                }
+
+                switch (resourceType) {
+                    case Policy:
+                        return new AccessPolicyAuthorizable(getAccessPolicy(resourceType, resource));
+                    case Data:
+                        return new DataAuthorizable(getAccessPolicy(resourceType, resource));
+                    case DataTransfer:
+                        return new DataTransferAuthorizable(getAccessPolicy(resourceType, resource));
+                    case ProvenanceData:
+                        return new ProvenanceDataAuthorizable(getAccessPolicy(resourceType, resource));
+                    case RunStatus:
+                        return new RunStatusAuthorizable(getAccessPolicy(resourceType, resource));
+                }
+
+            case RestrictedComponents:
+                final String slashRequiredPermission = StringUtils.substringAfter(resource, resourceType.getValue());
+
+                if (slashRequiredPermission.startsWith("/")) {
+                    final RequiredPermission requiredPermission = RequiredPermission.valueOfPermissionIdentifier(slashRequiredPermission.substring(1));
+
+                    if (requiredPermission == null) {
+                        throw new ResourceNotFoundException("Unrecognized resource: " + resource);
+                    }
+
+                    return getRestrictedComponents(requiredPermission);
+                } else {
+                    return getRestrictedComponents();
+                }
+
+            default:
+                return getAccessPolicy(resourceType, resource);
         }
     }
 

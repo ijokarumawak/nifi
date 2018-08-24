@@ -534,13 +534,10 @@
                                 'state': 'ENABLED'
                             }
                         } else {
-                            uri = d.uri;
+                            uri = d.uri + '/runStatus';
                             entity = {
                                 'revision': nfClient.getRevision(d),
-                                'component': {
-                                    'id': d.id,
-                                    'state': 'STOPPED'
-                                }
+                                'state': 'STOPPED'
                             };
                         }
 
@@ -596,13 +593,10 @@
                                 'state': 'DISABLED'
                             }
                         } else {
-                            uri = d.uri;
+                            uri = d.uri + "/runStatus";
                             entity = {
                                 'revision': nfClient.getRevision(d),
-                                'component': {
-                                     'id': d.id,
-                                    'state': 'DISABLED'
-                                }
+                                'state': 'DISABLED'
                             };
                         }
 
@@ -677,13 +671,10 @@
                                 'state': 'RUNNING'
                             }
                         } else {
-                            uri = d.uri;
+                            uri = d.uri + '/runStatus';
                             entity = {
                                 'revision': nfClient.getRevision(d),
-                                'component': {
-                                    'id': d.id,
-                                    'state': 'RUNNING'
-                                }
+                                'state': 'RUNNING'
                             };
                         }
 
@@ -742,13 +733,10 @@
                                 'state': 'STOPPED'
                             };
                         } else {
-                            uri = d.uri;
+                            uri = d.uri + '/runStatus';
                             entity = {
                                 'revision': nfClient.getRevision(d),
-                                'component': {
-                                    'id': d.id,
-                                    'state': 'STOPPED'
-                                }
+                                'state': 'STOPPED'
                             };
                         }
 
