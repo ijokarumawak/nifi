@@ -49,6 +49,7 @@ import org.apache.nifi.authorization.Resource;
 import org.apache.nifi.authorization.User;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.ComponentAuthorizable;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.bundle.Bundle;
@@ -2072,13 +2073,14 @@ public final class DtoFactory {
             final ProcessorDTO dto = createProcessorDto(processor);
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(processor.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(processor);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(processor));
             final ProcessorStatusDTO status = getComponentStatus(
                 () -> groupStatus.getProcessorStatus().stream().filter(processorStatus -> processor.getIdentifier().equals(processorStatus.getId())).findFirst().orElse(null),
                 processorStatus -> createProcessorStatusDto(processorStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(processor.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            flow.getProcessors().add(entityFactory.createProcessorEntity(dto, revision, permissions, status, bulletinEntities));
+            flow.getProcessors().add(entityFactory.createProcessorEntity(dto, revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         for (final RemoteProcessGroupDTO snippetRemoteProcessGroup : snippet.getRemoteProcessGroups()) {
@@ -2118,13 +2120,14 @@ public final class DtoFactory {
         for (final ProcessorNode procNode : group.getProcessors()) {
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(procNode.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(procNode);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(procNode));
             final ProcessorStatusDTO status = getComponentStatus(
                 () -> groupStatus.getProcessorStatus().stream().filter(processorStatus -> procNode.getIdentifier().equals(processorStatus.getId())).findFirst().orElse(null),
                 processorStatus -> createProcessorStatusDto(processorStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(procNode.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            dto.getProcessors().add(entityFactory.createProcessorEntity(createProcessorDto(procNode), revision, permissions, status, bulletinEntities));
+            dto.getProcessors().add(entityFactory.createProcessorEntity(createProcessorDto(procNode), revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         for (final Connection connNode : group.getConnections()) {

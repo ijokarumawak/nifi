@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlRootElement;
  * A serialized representation of this class can be placed in the entity body of a request or response to or from the API. This particular entity holds a reference to a ProcessorDTO.
  */
 @XmlRootElement(name = "processorEntity")
-public class ProcessorEntity extends ComponentEntity implements Permissible<ProcessorDTO>, RunStatusPermissible {
+public class ProcessorEntity extends ComponentEntity implements Permissible<ProcessorDTO>, OperationPermissible {
 
     private ProcessorDTO component;
     private String inputRequirement;
     private ProcessorStatusDTO status;
-    private PermissionsDTO runStatusPermissions;
+    private PermissionsDTO operatePermissions;
 
     /**
      * The ProcessorDTO that is being serialized.
@@ -75,20 +75,20 @@ public class ProcessorEntity extends ComponentEntity implements Permissible<Proc
     }
 
     /**
-     * The permissions for this component run status.
+     * The permissions for this component operations.
      *
      * @return The permissions
      */
     @ApiModelProperty(
-            value = "The permissions for this component run status."
+            value = "The permissions for this component operations."
     )
     @Override
-    public PermissionsDTO getRunStatusPermissions() {
-        return runStatusPermissions;
+    public PermissionsDTO getOperatePermissions() {
+        return operatePermissions;
     }
 
     @Override
-    public void setRunStatusPermissions(PermissionsDTO runStatusPermissions) {
-        this.runStatusPermissions = runStatusPermissions;
+    public void setOperatePermissions(PermissionsDTO operatePermissions) {
+        this.operatePermissions = operatePermissions;
     }
 }

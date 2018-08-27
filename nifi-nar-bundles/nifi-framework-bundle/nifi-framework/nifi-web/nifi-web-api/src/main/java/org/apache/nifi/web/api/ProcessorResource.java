@@ -29,7 +29,7 @@ import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.ComponentAuthorizable;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
-import org.apache.nifi.authorization.resource.RunStatusAuthorizable;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.ui.extension.UiExtension;
@@ -683,14 +683,13 @@ public class ProcessorResource extends ApplicationResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/runStatus")
+    @Path("/{id}/run-status")
     @ApiOperation(
             value = "Updates run status of a processor",
             response = ProcessorEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /processors/{uuid}"),
-                    // TODO: Design policy path structure
-                    @Authorization(value = "Write - /processors/{uuid}/runStatus"),
+                    @Authorization(value = "Write - /run-status/processors/{uuid}"),
             }
     )
     @ApiResponses(
@@ -702,7 +701,7 @@ public class ProcessorResource extends ApplicationResource {
                     @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
             }
     )
-    public Response updateProcessorRunStatus(
+    public Response updateRunStatus(
             @Context final HttpServletRequest httpServletRequest,
             @ApiParam(
                     value = "The processor id.",
@@ -747,7 +746,7 @@ public class ProcessorResource extends ApplicationResource {
                         authorizable.authorize(authorizer, RequestAction.WRITE, user);
                     } catch (AccessDeniedException e) {
                         // See if state can be updated
-                        new RunStatusAuthorizable(authorizable).authorize(authorizer, RequestAction.WRITE, user);
+                        new OperationAuthorizable(authorizable).authorize(authorizer, RequestAction.WRITE, user);
                     }
 
                 },

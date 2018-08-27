@@ -21,10 +21,10 @@ import org.apache.nifi.authorization.Resource;
 /**
  * Authorizable for a component that has run status such as 'STARTED', 'STOPPED', 'ENABLED' or 'DISABLED' ... etc.
  */
-public class RunStatusAuthorizable implements Authorizable {
+public class OperationAuthorizable implements Authorizable {
     private final Authorizable authorizable;
 
-    public RunStatusAuthorizable(final Authorizable authorizable) {
+    public OperationAuthorizable(final Authorizable authorizable) {
         this.authorizable = authorizable;
     }
 
@@ -34,13 +34,13 @@ public class RunStatusAuthorizable implements Authorizable {
         if (authorizable.getParentAuthorizable() == null) {
             return null;
         } else {
-            return new RunStatusAuthorizable(authorizable.getParentAuthorizable());
+            return new OperationAuthorizable(authorizable.getParentAuthorizable());
         }
     }
 
     @Override
     public Resource getResource() {
-        return ResourceFactory.getRunStatusResource(authorizable.getResource());
+        return ResourceFactory.getOperationResource(authorizable.getResource());
     }
 
 

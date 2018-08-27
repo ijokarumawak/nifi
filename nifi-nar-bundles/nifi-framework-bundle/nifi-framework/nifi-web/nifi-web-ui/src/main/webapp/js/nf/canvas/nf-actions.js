@@ -534,7 +534,7 @@
                                 'state': 'ENABLED'
                             }
                         } else {
-                            uri = d.uri + '/runStatus';
+                            uri = d.uri + '/run-status';
                             entity = {
                                 'revision': nfClient.getRevision(d),
                                 'state': 'STOPPED'
@@ -593,7 +593,7 @@
                                 'state': 'DISABLED'
                             }
                         } else {
-                            uri = d.uri + "/runStatus";
+                            uri = d.uri + "/run-status";
                             entity = {
                                 'revision': nfClient.getRevision(d),
                                 'state': 'DISABLED'
@@ -671,7 +671,7 @@
                                 'state': 'RUNNING'
                             }
                         } else {
-                            uri = d.uri + '/runStatus';
+                            uri = d.uri + '/run-status';
                             entity = {
                                 'revision': nfClient.getRevision(d),
                                 'state': 'RUNNING'
@@ -733,7 +733,7 @@
                                 'state': 'STOPPED'
                             };
                         } else {
-                            uri = d.uri + '/runStatus';
+                            uri = d.uri + '/run-status';
                             entity = {
                                 'revision': nfClient.getRevision(d),
                                 'state': 'STOPPED'

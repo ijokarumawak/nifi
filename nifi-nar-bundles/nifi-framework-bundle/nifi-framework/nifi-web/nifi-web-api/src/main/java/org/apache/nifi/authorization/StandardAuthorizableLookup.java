@@ -26,7 +26,7 @@ import org.apache.nifi.authorization.resource.ProvenanceDataAuthorizable;
 import org.apache.nifi.authorization.resource.ResourceFactory;
 import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.authorization.resource.RestrictedComponentsAuthorizableFactory;
-import org.apache.nifi.authorization.resource.RunStatusAuthorizable;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.resource.TenantAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.bundle.BundleCoordinate;
@@ -471,13 +471,7 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
     @Override
     public Authorizable getAuthorizableFromResource(String resource) {
         // parse the resource type
-        ResourceType resourceType = null;
-        for (ResourceType type : ResourceType.values()) {
-            if (resource.equals(type.getValue()) || resource.startsWith(type.getValue() + "/")) {
-                resourceType = type;
-            }
-        }
-
+        ResourceType resourceType = ResourceType.fromRawValue(resource);
         if (resourceType == null) {
             throw new ResourceNotFoundException("Unrecognized resource: " + resource);
         }
@@ -488,24 +482,18 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
             case Data:
             case DataTransfer:
             case ProvenanceData:
-            case RunStatus:
+            case Operation:
                 final ResourceType primaryResourceType = resourceType;
-                resourceType = null;
 
                 // get the resource type
                 resource = StringUtils.substringAfter(resource, primaryResourceType.getValue());
-
-                for (ResourceType type : ResourceType.values()) {
-                    if (resource.equals(type.getValue()) || resource.startsWith(type.getValue() + "/")) {
-                        resourceType = type;
-                    }
-                }
+                resourceType = ResourceType.fromRawValue(resource);
 
                 if (resourceType == null) {
                     throw new ResourceNotFoundException("Unrecognized base resource: " + resource);
                 }
 
-                switch (resourceType) {
+                switch (primaryResourceType) {
                     case Policy:
                         return new AccessPolicyAuthorizable(getAccessPolicy(resourceType, resource));
                     case Data:
@@ -514,8 +502,8 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
                         return new DataTransferAuthorizable(getAccessPolicy(resourceType, resource));
                     case ProvenanceData:
                         return new ProvenanceDataAuthorizable(getAccessPolicy(resourceType, resource));
-                    case RunStatus:
-                        return new RunStatusAuthorizable(getAccessPolicy(resourceType, resource));
+                    case Operation:
+                        return new OperationAuthorizable(getAccessPolicy(resourceType, resource));
                 }
 
             case RestrictedComponents:

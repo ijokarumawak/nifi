@@ -173,7 +173,7 @@
             return false;
         }
 
-        if (nfCanvasUtils.canModify(selection) === false) {
+        if (nfCanvasUtils.canOperate(selection) === false) {
             return false;
         }
 

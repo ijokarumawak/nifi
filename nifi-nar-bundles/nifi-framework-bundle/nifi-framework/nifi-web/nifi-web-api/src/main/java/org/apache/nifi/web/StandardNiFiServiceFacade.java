@@ -40,6 +40,7 @@ import org.apache.nifi.authorization.UserContextKeys;
 import org.apache.nifi.authorization.resource.Authorizable;
 import org.apache.nifi.authorization.resource.EnforcePolicyPermissionsThroughBaseResource;
 import org.apache.nifi.authorization.resource.ResourceFactory;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.cluster.coordination.ClusterCoordinator;
@@ -668,10 +669,11 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 });
 
         final PermissionsDTO permissions = dtoFactory.createPermissionsDto(processorNode);
+        final PermissionsDTO operatePermissions = dtoFactory.createPermissionsDto(new OperationAuthorizable(processorNode));
         final ProcessorStatusDTO status = dtoFactory.createProcessorStatusDto(controllerFacade.getProcessorStatus(processorNode.getIdentifier()));
         final List<BulletinDTO> bulletins = dtoFactory.createBulletinDtos(bulletinRepository.findBulletinsForSource(processorNode.getIdentifier()));
         final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-        return entityFactory.createProcessorEntity(snapshot.getComponent(), dtoFactory.createRevisionDTO(snapshot.getLastModification()), permissions, status, bulletinEntities);
+        return entityFactory.createProcessorEntity(snapshot.getComponent(), dtoFactory.createRevisionDTO(snapshot.getLastModification()), permissions, operatePermissions, status, bulletinEntities);
     }
 
     private void awaitValidationCompletion(final ComponentNode component) {
@@ -1198,6 +1200,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
     public ProcessorEntity deleteProcessor(final Revision revision, final String processorId) {
         final ProcessorNode processor = processorDAO.getProcessor(processorId);
         final PermissionsDTO permissions = dtoFactory.createPermissionsDto(processor);
+        final PermissionsDTO operatePermissions = dtoFactory.createPermissionsDto(new OperationAuthorizable(processor));
         final ProcessorDTO snapshot = deleteComponent(
                 revision,
                 processor.getResource(),
@@ -1205,7 +1208,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 true,
                 dtoFactory.createProcessorDto(processor));
 
-        return entityFactory.createProcessorEntity(snapshot, null, permissions, null, null);
+        return entityFactory.createProcessorEntity(snapshot, null, permissions, operatePermissions, null, null);
     }
 
     @Override
@@ -1602,10 +1605,11 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         final ProcessorNode processor = processorDAO.getProcessor(processorDTO.getId());
         final PermissionsDTO permissions = dtoFactory.createPermissionsDto(processor);
+        final PermissionsDTO operatePermissions = dtoFactory.createPermissionsDto(new OperationAuthorizable(processor));
         final ProcessorStatusDTO status = dtoFactory.createProcessorStatusDto(controllerFacade.getProcessorStatus(processorDTO.getId()));
         final List<BulletinDTO> bulletins = dtoFactory.createBulletinDtos(bulletinRepository.findBulletinsForSource(processorDTO.getId()));
         final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-        return entityFactory.createProcessorEntity(snapshot.getComponent(), dtoFactory.createRevisionDTO(snapshot.getLastModification()), permissions, status, bulletinEntities);
+        return entityFactory.createProcessorEntity(snapshot.getComponent(), dtoFactory.createRevisionDTO(snapshot.getLastModification()), permissions, operatePermissions, status, bulletinEntities);
     }
 
     @Override
@@ -2850,10 +2854,11 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
     private ProcessorEntity createProcessorEntity(final ProcessorNode processor, final NiFiUser user) {
         final RevisionDTO revision = dtoFactory.createRevisionDTO(revisionManager.getRevision(processor.getIdentifier()));
         final PermissionsDTO permissions = dtoFactory.createPermissionsDto(processor, user);
+        final PermissionsDTO operatePermissions = dtoFactory.createPermissionsDto(new OperationAuthorizable(processor));
         final ProcessorStatusDTO status = dtoFactory.createProcessorStatusDto(controllerFacade.getProcessorStatus(processor.getIdentifier()));
         final List<BulletinDTO> bulletins = dtoFactory.createBulletinDtos(bulletinRepository.findBulletinsForSource(processor.getIdentifier()));
         final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-        return entityFactory.createProcessorEntity(dtoFactory.createProcessorDto(processor), revision, permissions, status, bulletinEntities);
+        return entityFactory.createProcessorEntity(dtoFactory.createProcessorDto(processor), revision, permissions, operatePermissions, status, bulletinEntities);
     }
 
     @Override
@@ -4144,6 +4149,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         entity.setId(connectable.getIdentifier());
 
         final Authorizable authorizable = getAuthorizable(connectable);
+        // TODO: Set operatePermissions, too
         final PermissionsDTO permissionsDto = dtoFactory.createPermissionsDto(authorizable);
         entity.setPermissions(permissionsDto);
 
@@ -4184,6 +4190,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         entity.setId(instance.getInstanceId());
 
         final Authorizable authorizable = getAuthorizable(componentTypeName, instance);
+        // TODO: Set operatePermissions, too
         final PermissionsDTO permissionsDto = dtoFactory.createPermissionsDto(authorizable);
         entity.setPermissions(permissionsDto);
 

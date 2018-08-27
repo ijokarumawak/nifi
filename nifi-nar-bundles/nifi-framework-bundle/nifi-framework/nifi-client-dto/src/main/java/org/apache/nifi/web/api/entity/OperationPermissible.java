@@ -19,12 +19,14 @@ package org.apache.nifi.web.api.entity;
 import org.apache.nifi.web.api.dto.PermissionsDTO;
 
 /**
- * Provides access to a {@link PermissionsDTO} for its run status.  This is intended to be used by classes that extend {@link Entity} which has run status such as 'RUNNING', 'STOPPED', 'ENABLED' or 'DISABLED'.
+ * Provides access to a {@link PermissionsDTO} for its operations.
+ * This is intended to be used by classes that extend {@link Entity} which can be operated by operators
+ * who does not have 'write' or 'read' access to the component, but has 'operate' access.
  */
-public interface RunStatusPermissible {
+public interface OperationPermissible {
 
-    PermissionsDTO getRunStatusPermissions();
+    PermissionsDTO getOperatePermissions();
 
-    void setRunStatusPermissions(PermissionsDTO permissions);
+    void setOperatePermissions(PermissionsDTO permissions);
 
 }

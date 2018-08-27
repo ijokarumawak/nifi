@@ -197,14 +197,14 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ProcessorEntity createProcessorEntity(final ProcessorDTO dto, final RevisionDTO revision, final PermissionsDTO permissions,
+    public ProcessorEntity createProcessorEntity(final ProcessorDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions,
         final ProcessorStatusDTO status, final List<BulletinEntity> bulletins) {
 
         final ProcessorEntity entity = new ProcessorEntity();
         entity.setRevision(revision);
         if (dto != null) {
             entity.setPermissions(permissions);
-            // TODO: setRunStatusPermissions;
+            entity.setOperatePermissions(operatePermissions);
             entity.setStatus(status);
             entity.setId(dto.getId());
             entity.setInputRequirement(dto.getInputRequirement());

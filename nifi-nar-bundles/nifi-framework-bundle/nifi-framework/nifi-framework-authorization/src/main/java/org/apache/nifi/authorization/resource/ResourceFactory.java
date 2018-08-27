@@ -442,28 +442,28 @@ public final class ResourceFactory {
     }
 
     /**
-     * Gets a Resource for accessing a resources's run status.
+     * Gets a Resource for accessing component operations.
      *
      * @param resource      The resource being accessed
      * @return              The resource
      */
-    public static Resource getRunStatusResource(final Resource resource) {
+    public static Resource getOperationResource(final Resource resource) {
         Objects.requireNonNull(resource, "The resource type must be specified.");
 
         return new Resource() {
             @Override
             public String getIdentifier() {
-                return ResourceType.RunStatus.getValue() + "/" + resource.getIdentifier();
+                return ResourceType.Operation.getValue() + resource.getIdentifier();
             }
 
             @Override
             public String getName() {
-                return "Run status for" + resource.getName();
+                return "Operations for" + resource.getName();
             }
 
             @Override
             public String getSafeDescription() {
-                return "Run status for" + resource.getSafeDescription();
+                return "Operations for" + resource.getSafeDescription();
             }
         };
     }
