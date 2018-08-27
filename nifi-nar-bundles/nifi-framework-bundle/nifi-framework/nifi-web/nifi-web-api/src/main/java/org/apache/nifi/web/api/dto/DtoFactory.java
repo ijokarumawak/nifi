@@ -2016,13 +2016,14 @@ public final class DtoFactory {
             final PortDTO dto = createPortDto(inputPort);
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(inputPort.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(inputPort);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(inputPort));
             final PortStatusDTO status = getComponentStatus(
                 () -> groupStatus.getInputPortStatus().stream().filter(inputPortStatus -> inputPort.getIdentifier().equals(inputPortStatus.getId())).findFirst().orElse(null),
                 inputPortStatus -> createPortStatusDto(inputPortStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(inputPort.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            flow.getInputPorts().add(entityFactory.createPortEntity(dto, revision, permissions, status, bulletinEntities));
+            flow.getInputPorts().add(entityFactory.createPortEntity(dto, revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         for (final PortDTO snippetOutputPort : snippet.getOutputPorts()) {
@@ -2032,13 +2033,14 @@ public final class DtoFactory {
             final PortDTO dto = createPortDto(outputPort);
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(outputPort.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(outputPort);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(outputPort));
             final PortStatusDTO status = getComponentStatus(
                 () -> groupStatus.getOutputPortStatus().stream().filter(outputPortStatus -> outputPort.getIdentifier().equals(outputPortStatus.getId())).findFirst().orElse(null),
                 outputPortStatus -> createPortStatusDto(outputPortStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(outputPort.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            flow.getOutputPorts().add(entityFactory.createPortEntity(dto, revision, permissions, status, bulletinEntities));
+            flow.getOutputPorts().add(entityFactory.createPortEntity(dto, revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         for (final LabelDTO snippetLabel : snippet.getLabels()) {
@@ -2178,25 +2180,27 @@ public final class DtoFactory {
         for (final Port inputPort : group.getInputPorts()) {
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(inputPort.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(inputPort);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(inputPort));
             final PortStatusDTO status = getComponentStatus(
                 () -> groupStatus.getInputPortStatus().stream().filter(inputPortStatus -> inputPort.getIdentifier().equals(inputPortStatus.getId())).findFirst().orElse(null),
                 inputPortStatus -> createPortStatusDto(inputPortStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(inputPort.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            dto.getInputPorts().add(entityFactory.createPortEntity(createPortDto(inputPort), revision, permissions, status, bulletinEntities));
+            dto.getInputPorts().add(entityFactory.createPortEntity(createPortDto(inputPort), revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         for (final Port outputPort : group.getOutputPorts()) {
             final RevisionDTO revision = createRevisionDTO(revisionManager.getRevision(outputPort.getIdentifier()));
             final PermissionsDTO permissions = createPermissionsDto(outputPort);
+            final PermissionsDTO operatePermissions = createPermissionsDto(new OperationAuthorizable(outputPort));
             final PortStatusDTO status = getComponentStatus(
                 () -> groupStatus.getOutputPortStatus().stream().filter(outputPortStatus -> outputPort.getIdentifier().equals(outputPortStatus.getId())).findFirst().orElse(null),
                 outputPortStatus -> createPortStatusDto(outputPortStatus)
             );
             final List<BulletinDTO> bulletins = createBulletinDtos(bulletinRepository.findBulletinsForSource(outputPort.getIdentifier()));
             final List<BulletinEntity> bulletinEntities = bulletins.stream().map(bulletin -> entityFactory.createBulletinEntity(bulletin, permissions.getCanRead())).collect(Collectors.toList());
-            dto.getOutputPorts().add(entityFactory.createPortEntity(createPortDto(outputPort), revision, permissions, status, bulletinEntities));
+            dto.getOutputPorts().add(entityFactory.createPortEntity(createPortDto(outputPort), revision, permissions, operatePermissions, status, bulletinEntities));
         }
 
         return dto;

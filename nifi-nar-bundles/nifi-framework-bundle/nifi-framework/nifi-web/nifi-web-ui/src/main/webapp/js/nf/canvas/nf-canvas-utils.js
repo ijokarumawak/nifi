@@ -1481,7 +1481,7 @@
         canOperate: function (selection) {
             var selectionSize = selection.size();
             var writableSize = selection.filter(function (d) {
-                return d.operatePermissions.canWrite;
+                return d.permissions.canWrite || (d.operatePermissions && d.operatePermissions.canWrite);
             }).size();
 
             return selectionSize === writableSize;
