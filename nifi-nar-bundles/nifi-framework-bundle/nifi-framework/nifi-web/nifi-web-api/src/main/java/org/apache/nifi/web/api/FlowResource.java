@@ -23,9 +23,11 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.nifi.authorization.AccessDeniedException;
 import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.bundle.Bundle;
@@ -537,7 +539,8 @@ public class FlowResource extends ApplicationResource {
             response = ScheduleComponentsEntity.class,
             authorizations = {
                     @Authorization(value = "Read - /flow"),
-                    @Authorization(value = "Write - /{component-type}/{uuid} - For every component being scheduled/unscheduled")
+                    @Authorization(value = "Write - /{component-type}/{uuid} - For every component being scheduled/unscheduled"),
+                    @Authorization(value = "Write - /operation/{component-type}/{uuid} - For every component being scheduled/unscheduled")
             }
     )
     @ApiResponses(
@@ -623,10 +626,11 @@ public class FlowResource extends ApplicationResource {
             final Set<Revision> revisions = serviceFacade.getRevisionsFromGroup(id, group -> {
                 final Set<String> componentIds = new HashSet<>();
 
+                // TODO: update here to refer /operation policies
                 // ensure authorized for each processor we will attempt to schedule
                 group.findAllProcessors().stream()
                         .filter(getProcessorFilter.get())
-                        .filter(processor -> processor.isAuthorized(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser()))
+                        .filter(processor -> OperationAuthorizable.isAuthorized(processor, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser()))
                         .forEach(processor -> {
                             componentIds.add(processor.getIdentifier());
                         });
@@ -685,7 +689,7 @@ public class FlowResource extends ApplicationResource {
                     // ensure access to every component being scheduled
                     requestComponentsToSchedule.keySet().forEach(componentId -> {
                         final Authorizable connectable = lookup.getLocalConnectable(componentId);
-                        connectable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                        OperationAuthorizable.authorize(connectable, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                     });
                 },
                 () -> {

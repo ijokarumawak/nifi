@@ -16,12 +16,20 @@
  */
 package org.apache.nifi.authorization.resource;
 
+import org.apache.nifi.authorization.AccessDeniedException;
+import org.apache.nifi.authorization.Authorizer;
+import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.Resource;
+import org.apache.nifi.authorization.user.NiFiUser;
+import org.apache.nifi.authorization.user.NiFiUserUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Authorizable for a component that has run status such as 'STARTED', 'STOPPED', 'ENABLED' or 'DISABLED' ... etc.
+ * Authorizable for a component that can be scheduled by operators.
  */
 public class OperationAuthorizable implements Authorizable {
+    private static Logger logger = LoggerFactory.getLogger(OperationAuthorizable.class);
     private final Authorizable authorizable;
 
     public OperationAuthorizable(final Authorizable authorizable) {
@@ -30,7 +38,7 @@ public class OperationAuthorizable implements Authorizable {
 
     @Override
     public Authorizable getParentAuthorizable() {
-        // TODO: Need to return parent authorizable. E.g. /run-status/processor/xxxx -> /run-status/process-group/yyyy -> /run-status/process-group/root
+        // Need to return parent operation authorizable. E.g. /operation/processor/xxxx -> /operation/process-group/yyyy -> /run-status/process-group/root
         if (authorizable.getParentAuthorizable() == null) {
             return null;
         } else {
@@ -43,5 +51,19 @@ public class OperationAuthorizable implements Authorizable {
         return ResourceFactory.getOperationResource(authorizable.getResource());
     }
 
+    public static void authorize(final Authorizable authorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
+        try {
+            authorizable.authorize(authorizer, requestAction, user);
+        } catch (AccessDeniedException e) {
+            logger.debug("Authorization failed with {}. Try authorizing with OperationAuthorizable.", authorizable, e);
+            new OperationAuthorizable(authorizable).authorize(authorizer, requestAction, user);
+        }
+
+    }
+
+    public static boolean isAuthorized(final Authorizable authorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
+        return authorizable.isAuthorized(authorizer, requestAction, user)
+                || new OperationAuthorizable(authorizable).isAuthorized(authorizer, requestAction, user);
+    }
 
 }

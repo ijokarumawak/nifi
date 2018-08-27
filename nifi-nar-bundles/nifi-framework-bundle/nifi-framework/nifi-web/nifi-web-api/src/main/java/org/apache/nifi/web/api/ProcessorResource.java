@@ -689,7 +689,7 @@ public class ProcessorResource extends ApplicationResource {
             response = ProcessorEntity.class,
             authorizations = {
                     @Authorization(value = "Write - /processors/{uuid}"),
-                    @Authorization(value = "Write - /run-status/processors/{uuid}"),
+                    @Authorization(value = "Write - /operation/processors/{uuid}"),
             }
     )
     @ApiResponses(
@@ -742,13 +742,7 @@ public class ProcessorResource extends ApplicationResource {
                     final NiFiUser user = NiFiUserUtils.getNiFiUser();
 
                     final Authorizable authorizable = lookup.getProcessor(id).getAuthorizable();
-                    try {
-                        authorizable.authorize(authorizer, RequestAction.WRITE, user);
-                    } catch (AccessDeniedException e) {
-                        // See if state can be updated
-                        new OperationAuthorizable(authorizable).authorize(authorizer, RequestAction.WRITE, user);
-                    }
-
+                    OperationAuthorizable.authorize(authorizable, authorizer, RequestAction.WRITE, user);
                 },
                 () -> serviceFacade.verifyUpdateProcessor(requestProcessorDTO),
                 (revision, runStatusEntity) -> {
