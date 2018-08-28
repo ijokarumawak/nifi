@@ -19,7 +19,6 @@ package org.apache.nifi.web.api.entity;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
 import org.apache.nifi.web.api.dto.PermissionsDTO;
-import org.apache.nifi.web.api.dto.status.ControllerServiceStatusDTO;
 
 /**
  * A serialized representation of this class can be placed in the entity body of a response to the API. This particular entity holds a reference to a controller service.
@@ -29,7 +28,6 @@ public class ControllerServiceEntity extends ComponentEntity implements Permissi
 
     private ControllerServiceDTO component;
     private PermissionsDTO operatePermissions;
-    private ControllerServiceStatusDTO status;
 
     /**
      * @return controller service that is being serialized
@@ -52,16 +50,4 @@ public class ControllerServiceEntity extends ComponentEntity implements Permissi
         this.operatePermissions = permissions;
     }
 
-    /**
-     * The ControllerService status.
-     *
-     * @return status
-     */
-    public ControllerServiceStatusDTO getStatus() {
-        return status;
-    }
-
-    public void setStatus(ControllerServiceStatusDTO status) {
-        this.status = status;
-    }
 }

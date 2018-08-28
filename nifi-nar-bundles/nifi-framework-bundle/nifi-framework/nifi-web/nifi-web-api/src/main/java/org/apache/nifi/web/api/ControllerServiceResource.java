@@ -162,7 +162,7 @@ public class ControllerServiceResource extends ApplicationResource {
             response = ControllerServiceEntity.class,
             authorizations = {
                     @Authorization(value = "Read - /controller-services/{uuid}"),
-                    @Authorization(value = "Read - /operation/controller-services/{uuid} : Partial data can only be returned if the user has just 'operation' privilege but no 'controller-services'.")
+                    @Authorization(value = "Read - /operation/controller-services/{uuid} : Only partial data can be returned if the user only has 'operation' privilege but no 'controller-services'.")
             }
     )
     @ApiResponses(
