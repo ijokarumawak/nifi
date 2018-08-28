@@ -786,8 +786,8 @@
             return isAuthorized;
         };
 
-        if (nfCommon.isDefinedAndNotNull(dataContext.component.parentGroupId)) {
-            return canWriteProcessGroupParent(dataContext.component.parentGroupId);
+        if (nfCommon.isDefinedAndNotNull(dataContext.status.groupId)) {
+            return canWriteProcessGroupParent(dataContext.status.groupId);
         } else {
             return nfCommon.canModifyController();
         }
@@ -891,32 +891,30 @@
         };
 
         var controllerServiceStateFormatter = function (row, cell, value, columnDef, dataContext) {
-            if (!dataContext.permissions.canRead) {
+            if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canRead) {
                 return '';
             }
             
             // determine the appropriate label
             var icon = '', label = '';
-            if (dataContext.component.validationStatus === 'VALIDATING') {
+            if (dataContext.status.runStatus === 'Validating') {
                 icon = 'validating fa fa-spin fa-circle-notch';
                 label = 'Validating';
-            } else if (dataContext.component.validationStatus === 'INVALID') {
+            } else if (dataContext.status.runStatus === 'Invalid') {
                 icon = 'invalid fa fa-warning';
                 label = 'Invalid';
-            } else {
-                if (dataContext.component.state === 'DISABLED') {
-                    icon = 'disabled icon icon-enable-false"';
-                    label = 'Disabled';
-                } else if (dataContext.component.state === 'DISABLING') {
-                    icon = 'disabled icon icon-enable-false"';
-                    label = 'Disabling';
-                } else if (dataContext.component.state === 'ENABLED') {
-                    icon = 'enabled fa fa-flash';
-                    label = 'Enabled';
-                } else if (dataContext.component.state === 'ENABLING') {
-                    icon = 'enabled fa fa-flash';
-                    label = 'Enabling';
-                }
+            } else if (dataContext.status.runStatus === 'Disabled') {
+                icon = 'disabled icon icon-enable-false"';
+                label = 'Disabled';
+            } else if (dataContext.status.runStatus === 'Disabling') {
+                icon = 'disabled icon icon-enable-false"';
+                label = 'Disabling';
+            } else if (dataContext.status.runStatus === 'Enabled') {
+                icon = 'enabled fa fa-flash';
+                label = 'Enabled';
+            } else if (dataContext.status.runStatus === 'Enabling') {
+                icon = 'enabled fa fa-flash';
+                label = 'Enabling';
             }
 
             // format the markup
@@ -927,11 +925,15 @@
         var controllerServiceActionFormatter = function (row, cell, value, columnDef, dataContext) {
             var markup = '';
 
-            if (dataContext.permissions.canRead) {
+            var canRead = dataContext.permissions.canRead;
+            var canWrite = dataContext.permissions.canWrite;
+            var canOperate = canWrite || (dataContext.operatePermissions && dataContext.operatePermissions.canWrite);
+
+            if (canRead || canOperate) {
                 var definedByCurrentGroup = false;
-                if (nfCommon.isDefinedAndNotNull(dataContext.component.parentGroupId)) {
+                if (nfCommon.isDefinedAndNotNull(dataContext.status.groupId)) {
                     // when opened in the process group context, the current group is store in #process-group-id
-                    if (dataContext.component.parentGroupId === $('#process-group-id').text()) {
+                    if (dataContext.status.groupId === $('#process-group-id').text()) {
                         definedByCurrentGroup = true;
                     }
                 } else {
@@ -940,20 +942,22 @@
                 }
 
                 if (definedByCurrentGroup === true) {
-                    if (dataContext.permissions.canWrite) {
+                    if (canWrite || canOperate) {
                         // write permission... allow actions based on the current state of the service
-                        if (dataContext.component.state === 'ENABLED' || dataContext.component.state === 'ENABLING') {
-                            markup += '<div class="pointer view-controller-service fa fa-gear" title="View Configuration"></div>';
+                        if (dataContext.status.runStatus === 'Enabled' || dataContext.status.runStatus === 'Enabling') {
+                            if (canWrite) {
+                                markup += '<div class="pointer view-controller-service fa fa-gear" title="View Configuration"></div>';
+                            }
                             markup += '<div class="pointer disable-controller-service icon icon-enable-false" title="Disable"></div>';
-                        } else if (dataContext.component.state === 'DISABLED') {
-                            markup += '<div class="pointer edit-controller-service fa fa-gear" title="Configure"></div>';
-
-                            // if there are no validation errors allow enabling
-                            if (nfCommon.isEmpty(dataContext.component.validationErrors)) {
-                                markup += '<div class="pointer enable-controller-service fa fa-flash" title="Enable"></div>';
+                        } else if (dataContext.status.runStatus === 'Disabled') {
+                            if (canWrite) {
+                                markup += '<div class="pointer edit-controller-service fa fa-gear" title="Configure"></div>';
                             }
 
-                            if (dataContext.component.multipleVersionsAvailable === true) {
+                            // runStatus 'Disabled' means there are no validation errors, allow enabling
+                            markup += '<div class="pointer enable-controller-service fa fa-flash" title="Enable"></div>';
+
+                            if (canWrite && dataContext.component && dataContext.component.multipleVersionsAvailable === true) {
                                 markup += '<div title="Change Version" class="pointer change-version-controller-service fa fa-exchange"></div>';
                             }
 
@@ -962,7 +966,7 @@
                             }
                         }
 
-                        if (dataContext.component.persistsState === true) {
+                        if (canWrite && dataContext.component && dataContext.component.persistsState === true) {
                             markup += '<div title="View State" class="pointer view-state-controller-service fa fa-tasks"></div>';
                         }
                     } else {

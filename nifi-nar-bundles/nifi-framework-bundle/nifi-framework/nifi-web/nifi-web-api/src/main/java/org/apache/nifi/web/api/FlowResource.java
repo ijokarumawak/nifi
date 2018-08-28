@@ -380,7 +380,7 @@ public class FlowResource extends ApplicationResource {
     // -------------------
 
     /**
-     * Retrieves all the of controller services in this NiFi.
+     * Retrieves controller services for reporting tasks in this NiFi.
      *
      * @return A controllerServicesEntity.
      */
@@ -389,7 +389,7 @@ public class FlowResource extends ApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("controller/controller-services")
     @ApiOperation(
-            value = "Gets all controller services",
+            value = "Gets controller services for reporting tasks",
             response = ControllerServicesEntity.class,
             authorizations = {
                     @Authorization(value = "Read - /flow")

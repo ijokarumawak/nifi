@@ -22,6 +22,7 @@ import org.apache.nifi.web.api.dto.flow.FlowBreadcrumbDTO;
 import org.apache.nifi.web.api.dto.flow.ProcessGroupFlowDTO;
 import org.apache.nifi.web.api.dto.status.ConnectionStatusDTO;
 import org.apache.nifi.web.api.dto.status.ConnectionStatusSnapshotDTO;
+import org.apache.nifi.web.api.dto.status.ControllerServiceStatusDTO;
 import org.apache.nifi.web.api.dto.status.PortStatusDTO;
 import org.apache.nifi.web.api.dto.status.PortStatusSnapshotDTO;
 import org.apache.nifi.web.api.dto.status.ProcessGroupStatusDTO;
@@ -76,6 +77,8 @@ import org.apache.nifi.web.api.entity.VersionControlInformationEntity;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class EntityFactory {
 
@@ -497,16 +500,34 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ControllerServiceEntity createControllerServiceEntity(final ControllerServiceDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final List<BulletinEntity> bulletins) {
+    public ControllerServiceEntity createControllerServiceEntity(final ControllerServiceDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final ControllerServiceStatusDTO status, final List<BulletinEntity> bulletins) {
         final ControllerServiceEntity entity = new ControllerServiceEntity();
         entity.setRevision(revision);
         if (dto != null) {
             entity.setPermissions(permissions);
+            entity.setOperatePermissions(operatePermissions);
             entity.setId(dto.getId());
             entity.setPosition(dto.getPosition());
+            entity.setStatus(status);
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
+            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+                // TODO: If we return 'component', we didn't have to use ControllerServiceStatusDTO, do we? Instead, state and parentProcessGroupId can be returned and UI js do not have to change.
+                final Set<ControllerServiceReferencingComponentEntity> opsRefs = dto.getReferencingComponents().stream().map(ref -> {
+                    final ControllerServiceReferencingComponentEntity opsRef = new ControllerServiceReferencingComponentEntity();
+                    opsRef.setId(ref.getId());
+                    opsRef.setPermissions(ref.getPermissions());
+                    opsRef.setPosition(ref.getPosition());
+                    opsRef.setRevision(ref.getRevision());
+                    opsRef.setUri(ref.getUri());
+                    return opsRef;
+                }).collect(Collectors.toSet());
+                final ControllerServiceDTO opsDto = new ControllerServiceDTO();
+                opsDto.setId(dto.getId());
+                opsDto.setName(dto.getId());
+                opsDto.setReferencingComponents(opsRefs);
+                entity.setComponent(opsDto);
             }
         }
         return entity;

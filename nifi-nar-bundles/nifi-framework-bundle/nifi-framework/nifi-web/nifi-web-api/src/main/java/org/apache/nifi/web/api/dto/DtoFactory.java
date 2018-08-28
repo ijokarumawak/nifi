@@ -187,6 +187,7 @@ import org.apache.nifi.web.api.dto.provenance.lineage.ProvenanceLinkDTO;
 import org.apache.nifi.web.api.dto.provenance.lineage.ProvenanceNodeDTO;
 import org.apache.nifi.web.api.dto.status.ConnectionStatusDTO;
 import org.apache.nifi.web.api.dto.status.ConnectionStatusSnapshotDTO;
+import org.apache.nifi.web.api.dto.status.ControllerServiceStatusDTO;
 import org.apache.nifi.web.api.dto.status.PortStatusDTO;
 import org.apache.nifi.web.api.dto.status.PortStatusSnapshotDTO;
 import org.apache.nifi.web.api.dto.status.ProcessGroupStatusDTO;
@@ -1568,6 +1569,33 @@ public final class DtoFactory {
         }
 
         return dto;
+    }
+
+    public ControllerServiceStatusDTO createControllerServiceStatusDTO(final ControllerServiceNode controllerServiceNode, final PermissionsDTO permissions) {
+        final ControllerServiceStatusDTO dto = new ControllerServiceStatusDTO();
+        dto.setId(controllerServiceNode.getIdentifier());
+        dto.setGroupId(controllerServiceNode.getProcessGroupIdentifier());
+        final boolean canRead = permissions != null && permissions.getCanRead();
+        dto.setName(canRead ? controllerServiceNode.getName() : controllerServiceNode.getIdentifier());
+
+        // Map status value similar to ProcessorStatusDTO.
+        final String status;
+        final ValidationStatus validationStatus = controllerServiceNode.getValidationStatus();
+        if (ValidationStatus.VALID.equals(validationStatus)) {
+            status = capitalize(controllerServiceNode.getState().name());
+        } else {
+            status = capitalize(validationStatus.name());
+        }
+        dto.setRunStatus(status);
+
+        return dto;
+    }
+
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
     public RemoteProcessGroupPortDTO createRemoteProcessGroupPortDto(final RemoteGroupPort port) {

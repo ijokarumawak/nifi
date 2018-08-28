@@ -688,8 +688,7 @@ public class ProcessorResource extends ApplicationResource {
             value = "Updates run status of a processor",
             response = ProcessorEntity.class,
             authorizations = {
-                    @Authorization(value = "Write - /processors/{uuid}"),
-                    @Authorization(value = "Write - /operation/processors/{uuid}"),
+                    @Authorization(value = "Write - /processors/{uuid} or /operation/processors/{uuid}")
             }
     )
     @ApiResponses(

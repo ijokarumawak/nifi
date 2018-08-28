@@ -28,6 +28,7 @@ import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.authorization.ComponentAuthorizable;
 import org.apache.nifi.authorization.RequestAction;
 import org.apache.nifi.authorization.resource.Authorizable;
+import org.apache.nifi.authorization.resource.OperationAuthorizable;
 import org.apache.nifi.authorization.user.NiFiUserUtils;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.service.ControllerServiceState;
@@ -39,11 +40,13 @@ import org.apache.nifi.web.UiExtensionType;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ComponentStateDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.PropertyDescriptorDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.entity.ComponentStateEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceEntity;
 import org.apache.nifi.web.api.entity.ControllerServiceReferencingComponentsEntity;
+import org.apache.nifi.web.api.entity.ControllerServiceRunStatusEntity;
 import org.apache.nifi.web.api.entity.PropertyDescriptorEntity;
 import org.apache.nifi.web.api.entity.UpdateControllerServiceReferenceRequestEntity;
 import org.apache.nifi.web.api.request.ClientIdParameter;
@@ -126,6 +129,9 @@ public class ControllerServiceResource extends ApplicationResource {
      */
     public ControllerServiceDTO populateRemainingControllerServiceContent(final ControllerServiceDTO controllerService) {
         final BundleDTO bundle = controllerService.getBundle();
+        if (bundle == null) {
+            return controllerService;
+        }
 
         // see if this processor has any ui extensions
         final UiExtensionMapping uiExtensionMapping = (UiExtensionMapping) servletContext.getAttribute("nifi-ui-extensions");
@@ -155,7 +161,8 @@ public class ControllerServiceResource extends ApplicationResource {
             value = "Gets a controller service",
             response = ControllerServiceEntity.class,
             authorizations = {
-                    @Authorization(value = "Read - /controller-services/{uuid}")
+                    @Authorization(value = "Read - /controller-services/{uuid}"),
+                    @Authorization(value = "Read - /operation/controller-services/{uuid} : Partial data can only be returned if the user has just 'operation' privilege but no 'controller-services'.")
             }
     )
     @ApiResponses(
@@ -180,8 +187,8 @@ public class ControllerServiceResource extends ApplicationResource {
 
         // authorize access
         serviceFacade.authorizeAccess(lookup -> {
-            final Authorizable controllerService = lookup.getControllerService(id).getAuthorizable();
-            controllerService.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+            final Authorizable authorizable = new OperationAuthorizable(lookup.getControllerService(id).getAuthorizable());
+            authorizable.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
         });
 
         // get the controller service
@@ -736,6 +743,91 @@ public class ControllerServiceResource extends ApplicationResource {
                 (revision, controllerServiceEntity) -> {
                     // delete the specified controller service
                     final ControllerServiceEntity entity = serviceFacade.deleteControllerService(revision, controllerServiceEntity.getId());
+                    return generateOkResponse(entity).build();
+                }
+        );
+    }
+
+    /**
+     * Updates the operational status for the specified controller service with the specified values.
+     *
+     * @param httpServletRequest      request
+     * @param id                      The id of the controller service to update.
+     * @param requestRunStatus    A runStatusEntity.
+     * @return A controllerServiceEntity.
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}/run-status")
+    @ApiOperation(
+            value = "Updates a controller service",
+            response = ControllerServiceEntity.class,
+            authorizations = {
+                    @Authorization(value = "Write - /controller-services/{uuid} or /operation/controller-services{uuid}"),
+                    @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
+                    @ApiResponse(code = 401, message = "Client could not be authenticated."),
+                    @ApiResponse(code = 403, message = "Client is not authorized to make this request."),
+                    @ApiResponse(code = 404, message = "The specified resource could not be found."),
+                    @ApiResponse(code = 409, message = "The request was valid but NiFi was not in the appropriate state to process it. Retrying the same request later may be successful.")
+            }
+    )
+    public Response updateRunStatus(
+            @Context HttpServletRequest httpServletRequest,
+            @ApiParam(
+                    value = "The controller service id.",
+                    required = true
+            )
+            @PathParam("id") final String id,
+            @ApiParam(
+                    value = "The controller service run status.",
+                    required = true
+            ) final ControllerServiceRunStatusEntity requestRunStatus) {
+
+        if (requestRunStatus == null) {
+            throw new IllegalArgumentException("Controller service run status must be specified.");
+        }
+
+        if (requestRunStatus.getRevision() == null) {
+            throw new IllegalArgumentException("Revision must be specified.");
+        }
+
+        if (isReplicateRequest()) {
+            return replicate(HttpMethod.PUT, requestRunStatus);
+        }  else if (isDisconnectedFromCluster()) {
+            verifyDisconnectedNodeModification(requestRunStatus.isDisconnectedNodeAcknowledged());
+        }
+
+        // handle expects request (usually from the cluster manager)
+        final Revision requestRevision = getRevision(requestRunStatus.getRevision(), id);
+        // Create DTO to verify if it can be updated.
+        final ControllerServiceDTO requestControllerServiceDTO = new ControllerServiceDTO();
+        requestControllerServiceDTO.setId(id);
+        requestControllerServiceDTO.setState(requestRunStatus.getState());
+        return withWriteLock(
+                serviceFacade,
+                requestRunStatus,
+                requestRevision,
+                lookup -> {
+                    // authorize the service
+                    final Authorizable authorizable = lookup.getControllerService(id).getAuthorizable();
+                    OperationAuthorizable.authorize(authorizable, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+
+                    // TODO: Have to do anything like this?
+                    // authorize any referenced services
+//                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
+                },
+                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceDTO),
+                (revision, runStatusEntity) -> {
+                    // update the controller service
+                    final ControllerServiceEntity entity = serviceFacade.updateControllerService(revision, requestControllerServiceDTO);
+                    populateRemainingControllerServiceEntityContent(entity);
+
                     return generateOkResponse(entity).build();
                 }
         );

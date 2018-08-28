@@ -218,7 +218,10 @@
      */
     var reloadControllerServiceAndReferencingComponents = function (serviceTable, controllerService) {
         reloadControllerService(serviceTable, controllerService.id).done(function (response) {
-            reloadControllerServiceReferences(serviceTable, response.component);
+            // TODO: How can we handle this when the user does not have read access but only operate?
+            if (nfCommon.isDefinedAndNotNull(response.component)) {
+                reloadControllerServiceReferences(serviceTable, response.component);
+            }
         });
     };
 
@@ -636,15 +639,12 @@
         var updateControllerServiceEntity = {
             'revision': nfClient.getRevision(controllerServiceEntity),
             'disconnectedNodeAcknowledged': nfStorage.isDisconnectionAcknowledged(),
-            'component': {
-                'id': controllerServiceEntity.id,
-                'state': enabled ? 'ENABLED' : 'DISABLED'
-            }
+            'state': enabled ? 'ENABLED' : 'DISABLED'
         };
 
         var updated = $.ajax({
             type: 'PUT',
-            url: controllerServiceEntity.uri,
+            url: controllerServiceEntity.uri + '/run-status',
             data: JSON.stringify(updateControllerServiceEntity),
             dataType: 'json',
             contentType: 'application/json'
@@ -665,11 +665,10 @@
                     }
 
                     // the condition is met once the service is (ENABLING or ENABLED)/DISABLED
-                    if (enabled) {
-                        return service.state === 'ENABLING' || service.state === 'ENABLED';
-                    } else {
-                        return service.state === 'DISABLED';
-                    }
+                    var runStatus = service.status.runStatus;
+                    var isActive = runStatus === 'Enabling' || runStatus === 'Enabled' || runStatus === 'Disabling';
+                    return enabled ? isActive : !isActive;
+
                 }, function (service) {
                     return nfCanvasUtils.queryBulletins([service.id]);
                 }, pollCondition);
@@ -710,7 +709,7 @@
             });
         };
 
-        // check the referencing servcies
+        // check the referencing services
         checkReferencingServices(controllerService.referencingComponents);
         return ids;
     };
@@ -844,7 +843,6 @@
      * @param {function} pollCondition
      */
     var pollService = function (controllerServiceEntity, completeCondition, bulletinDeferred, pollCondition) {
-        var controllerService = controllerServiceEntity.component;
 
         // we want to keep polling until the condition is met
         return $.Deferred(function (deferred) {
@@ -860,7 +858,7 @@
 
             // polls for the current status of the referencing components
             var poll = function () {
-                var bulletins = bulletinDeferred(controllerService);
+                var bulletins = bulletinDeferred(controllerServiceEntity);
                 var service = $.ajax({
                     type: 'GET',
                     url: controllerServiceEntity.uri,
@@ -869,7 +867,7 @@
 
                 $.when(bulletins, service).done(function (bulletinResponse, serviceResult) {
                     var serviceResponse = serviceResult[0];
-                    conditionMet(serviceResponse.component, bulletinResponse.bulletinBoard.bulletins);
+                    conditionMet(serviceResponse, bulletinResponse.bulletinBoard.bulletins);
                 }).fail(function (xhr, status, error) {
                     deferred.reject();
                     nfErrorHandler.handleAjaxError(xhr, status, error);
@@ -890,8 +888,8 @@
             };
 
             // poll for the status of the referencing components
-            bulletinDeferred(controllerService).done(function (response) {
-                conditionMet(controllerService, response.bulletinBoard.bulletins);
+            bulletinDeferred(controllerServiceEntity).done(function (response) {
+                conditionMet(controllerServiceEntity, response.bulletinBoard.bulletins);
             }).fail(function (xhr, status, error) {
                 deferred.reject();
                 nfErrorHandler.handleAjaxError(xhr, status, error);
@@ -1113,7 +1111,7 @@
     var showDisableControllerServiceDialog = function (serviceTable, controllerService) {
         // populate the disable controller service dialog
         $('#disable-controller-service-id').text(controllerService.id);
-        $('#disable-controller-service-name').text(controllerService.name);
+        $('#disable-controller-service-name').text(controllerService.status.name);
 
         // load the controller referencing components list
         var referencingComponentsContainer = $('#disable-controller-service-referencing-components');
@@ -1162,14 +1160,17 @@
      * @param {object} serviceTable
      * @param {object} controllerService
      */
-    var showEnableControllerServiceDialog = function (serviceTable, controllerService) {
+    var showEnableControllerServiceDialog = function (serviceTable, controllerServiceEntity) {
+        var controllerService = controllerServiceEntity.component;
         // populate the disable controller service dialog
-        $('#enable-controller-service-id').text(controllerService.id);
-        $('#enable-controller-service-name').text(controllerService.name);
+        $('#enable-controller-service-id').text(controllerServiceEntity.id);
+        $('#enable-controller-service-name').text(controllerServiceEntity.status.name);
 
         // load the controller referencing components list
         var referencingComponentsContainer = $('#enable-controller-service-referencing-components');
-        createReferencingComponents(serviceTable, referencingComponentsContainer, controllerService.referencingComponents);
+        if (nfCommon.isDefinedAndNotNull(controllerService)) {
+            createReferencingComponents(serviceTable, referencingComponentsContainer, controllerService.referencingComponents);
+        }
 
         // build the button model
         var buttons = [{
@@ -1200,7 +1201,7 @@
         $('#enable-controller-service-dialog').modal('setButtonModel', buttons).modal('show');
 
         // load the bulletins
-        nfCanvasUtils.queryBulletins([controllerService.id]).done(function (response) {
+        nfCanvasUtils.queryBulletins([controllerServiceEntity.id]).done(function (response) {
             updateBulletins(response.bulletinBoard.bulletins, $('#enable-controller-service-bulletins'));
         });
 
@@ -1284,7 +1285,7 @@
             return;
         }
 
-        $('#disable-progress-label').text('Steps to disable ' + controllerService.name);
+        $('#disable-progress-label').text('Steps to disable ' + controllerServiceEntity.name);
         var disableReferencingSchedulable = $('#disable-referencing-schedulable').addClass('ajax-loading');
 
         $.Deferred(function (deferred) {
@@ -1437,7 +1438,7 @@
             return;
         }
 
-        $('#enable-progress-label').text('Steps to enable ' + controllerService.name);
+        $('#enable-progress-label').text('Steps to enable ' + controllerServiceEntity.status.name);
         var enableControllerService = $('#enable-controller-service').addClass('ajax-loading');
 
         $.Deferred(function (deferred) {
@@ -1484,7 +1485,7 @@
                 });
             }
         }).always(function () {
-            reloadControllerServiceAndReferencingComponents(serviceTable, controllerService);
+            reloadControllerServiceAndReferencingComponents(serviceTable, controllerServiceEntity);
             setCloseButton();
 
             // inform the user if the action was canceled
@@ -2131,7 +2132,7 @@
          * @param {object} controllerServiceEntity
          */
         enable: function (serviceTable, controllerServiceEntity) {
-            showEnableControllerServiceDialog(serviceTable, controllerServiceEntity.component);
+            showEnableControllerServiceDialog(serviceTable, controllerServiceEntity);
         },
 
         /**
@@ -2141,7 +2142,7 @@
          * @param {object} controllerServiceEntity
          */
         disable: function (serviceTable, controllerServiceEntity) {
-            showDisableControllerServiceDialog(serviceTable, controllerServiceEntity.component);
+            showDisableControllerServiceDialog(serviceTable, controllerServiceEntity);
         },
 
         /**
