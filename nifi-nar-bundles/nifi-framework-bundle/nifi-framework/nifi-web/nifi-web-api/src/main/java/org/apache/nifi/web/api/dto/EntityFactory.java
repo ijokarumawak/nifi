@@ -512,15 +512,10 @@ public final class EntityFactory {
                 entity.setBulletins(bulletins);
             } else if (operatePermissions != null && operatePermissions.getCanRead()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
-                final Set<ControllerServiceReferencingComponentEntity> opsRefs = dto.getReferencingComponents().stream().map(ref -> {
-                    final ControllerServiceReferencingComponentEntity opsRef = new ControllerServiceReferencingComponentEntity();
-                    opsRef.setId(ref.getId());
-                    opsRef.setPermissions(ref.getPermissions());
-                    opsRef.setPosition(ref.getPosition());
-                    opsRef.setRevision(ref.getRevision());
-                    opsRef.setUri(ref.getUri());
-                    return opsRef;
-                }).collect(Collectors.toSet());
+                final Set<ControllerServiceReferencingComponentEntity> opsRefs = dto.getReferencingComponents().stream()
+                        .map(ref -> createControllerServiceReferencingComponentEntity(ref.getId(), ref.getComponent(), ref.getRevision(),
+                                ref.getPermissions(), ref.getOperatePermissions())).collect(Collectors.toSet());
+
                 final ControllerServiceDTO opsDto = new ControllerServiceDTO();
                 opsDto.setId(dto.getId());
                 opsDto.setName(dto.getId());
@@ -534,15 +529,32 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ControllerServiceReferencingComponentEntity createControllerServiceReferencingComponentEntity(
-        final ControllerServiceReferencingComponentDTO dto, final RevisionDTO revision, final PermissionsDTO permissions) {
+    public ControllerServiceReferencingComponentEntity createControllerServiceReferencingComponentEntity(final String id,
+        final ControllerServiceReferencingComponentDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions) {
         final ControllerServiceReferencingComponentEntity entity = new ControllerServiceReferencingComponentEntity();
+        entity.setId(id);
         entity.setRevision(revision);
+        entity.setPermissions(permissions);
+        entity.setOperatePermissions(operatePermissions);
+
         if (dto != null) {
-            entity.setPermissions(permissions);
-            entity.setId(dto.getId());
+            if (!id.equals(dto.getId())) {
+                throw new IllegalArgumentException("The entity id and the dto id should be the same.");
+            }
+
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
+            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+                // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
+                final ControllerServiceReferencingComponentDTO opsDto = new ControllerServiceReferencingComponentDTO();
+                opsDto.setId(dto.getId());
+                opsDto.setGroupId(dto.getGroupId());
+                opsDto.setName(dto.getId());
+                opsDto.setReferenceType(dto.getReferenceType());
+                opsDto.setReferenceCycle(dto.getReferenceCycle());
+                opsDto.setReferencingComponents(dto.getReferencingComponents());
+                opsDto.setState(dto.getState());
+                entity.setComponent(opsDto);
             }
         }
 

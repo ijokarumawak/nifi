@@ -2339,10 +2339,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         final Set<ControllerServiceReferencingComponentEntity> componentEntities = new HashSet<>();
         for (final ComponentNode refComponent : referencingComponents) {
-            PermissionsDTO permissions = null;
-            if (refComponent instanceof Authorizable) {
-                permissions = dtoFactory.createPermissionsDto(refComponent);
-            }
+            final PermissionsDTO permissions = dtoFactory.createPermissionsDto(refComponent);
+            final PermissionsDTO operatePermissions = dtoFactory.createPermissionsDto(new OperationAuthorizable(refComponent));
 
             final Revision revision = revisions.get(refComponent.getIdentifier());
             final FlowModification flowMod = new FlowModification(revision, modifier);
@@ -2370,7 +2368,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
                 }
             }
 
-            componentEntities.add(entityFactory.createControllerServiceReferencingComponentEntity(dto, revisionDto, permissions));
+            componentEntities.add(entityFactory.createControllerServiceReferencingComponentEntity(refComponent.getIdentifier(), dto, revisionDto, permissions, operatePermissions));
         }
 
         final ControllerServiceReferencingComponentsEntity entity = new ControllerServiceReferencingComponentsEntity();

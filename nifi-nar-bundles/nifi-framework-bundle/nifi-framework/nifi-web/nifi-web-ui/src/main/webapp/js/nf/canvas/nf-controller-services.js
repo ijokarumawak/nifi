@@ -719,7 +719,7 @@
      * @returns {String}
      */
     var groupIdFormatter = function (row, cell, value, columnDef, dataContext) {
-        if (!dataContext.permissions.canRead) {
+        if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canRead) {
             return '';
         }
 
