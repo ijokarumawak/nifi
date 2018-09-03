@@ -761,11 +761,10 @@ public class ControllerServiceResource extends ApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/run-status")
     @ApiOperation(
-            value = "Updates a controller service",
+            value = "Updates run status of a controller service",
             response = ControllerServiceEntity.class,
             authorizations = {
-                    @Authorization(value = "Write - /controller-services/{uuid} or /operation/controller-services{uuid}"),
-                    @Authorization(value = "Read - any referenced Controller Services if this request changes the reference - /controller-services/{uuid}")
+                    @Authorization(value = "Write - /controller-services/{uuid} or /operation/controller-services/{uuid}")
             }
     )
     @ApiResponses(
@@ -806,9 +805,9 @@ public class ControllerServiceResource extends ApplicationResource {
         // handle expects request (usually from the cluster manager)
         final Revision requestRevision = getRevision(requestRunStatus.getRevision(), id);
         // Create DTO to verify if it can be updated.
-        final ControllerServiceDTO requestControllerServiceDTO = new ControllerServiceDTO();
-        requestControllerServiceDTO.setId(id);
-        requestControllerServiceDTO.setState(requestRunStatus.getState());
+        final ControllerServiceDTO controllerServiceDTO = new ControllerServiceDTO();
+        controllerServiceDTO.setId(id);
+        controllerServiceDTO.setState(requestRunStatus.getState());
         return withWriteLock(
                 serviceFacade,
                 requestRunStatus,
@@ -817,15 +816,11 @@ public class ControllerServiceResource extends ApplicationResource {
                     // authorize the service
                     final Authorizable authorizable = lookup.getControllerService(id).getAuthorizable();
                     OperationAuthorizable.authorize(authorizable, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
-
-                    // TODO: Have to do anything like this?
-                    // authorize any referenced services
-//                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
                 },
-                () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceDTO),
+                () -> serviceFacade.verifyUpdateControllerService(controllerServiceDTO),
                 (revision, runStatusEntity) -> {
                     // update the controller service
-                    final ControllerServiceEntity entity = serviceFacade.updateControllerService(revision, requestControllerServiceDTO);
+                    final ControllerServiceEntity entity = serviceFacade.updateControllerService(revision, controllerServiceDTO);
                     populateRemainingControllerServiceEntityContent(entity);
 
                     return generateOkResponse(entity).build();

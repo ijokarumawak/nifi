@@ -18,15 +18,17 @@ package org.apache.nifi.web.api.entity;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.nifi.web.api.dto.PermissionsDTO;
 import org.apache.nifi.web.api.dto.ReportingTaskDTO;
 
 /**
  * A serialized representation of this class can be placed in the entity body of a response to the API. This particular entity holds a reference to a reporting task.
  */
 @XmlRootElement(name = "reportingTaskEntity")
-public class ReportingTaskEntity extends ComponentEntity implements Permissible<ReportingTaskDTO> {
+public class ReportingTaskEntity extends ComponentEntity implements Permissible<ReportingTaskDTO>, OperationPermissible {
 
     private ReportingTaskDTO component;
+    private PermissionsDTO operatePermissions;
 
     /**
      * @return reporting task that is being serialized
@@ -41,4 +43,13 @@ public class ReportingTaskEntity extends ComponentEntity implements Permissible<
         this.component = component;
     }
 
+    @Override
+    public PermissionsDTO getOperatePermissions() {
+        return operatePermissions;
+    }
+
+    @Override
+    public void setOperatePermissions(PermissionsDTO permissions) {
+        this.operatePermissions = permissions;
+    }
 }

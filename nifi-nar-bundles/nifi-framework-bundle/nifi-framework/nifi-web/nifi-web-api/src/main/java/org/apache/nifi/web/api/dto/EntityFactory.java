@@ -472,15 +472,24 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ReportingTaskEntity createReportingTaskEntity(final ReportingTaskDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final List<BulletinEntity> bulletins) {
+    public ReportingTaskEntity createReportingTaskEntity(final ReportingTaskDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final List<BulletinEntity> bulletins) {
         final ReportingTaskEntity entity = new ReportingTaskEntity();
         entity.setRevision(revision);
         if (dto != null) {
             entity.setPermissions(permissions);
+            entity.setOperatePermissions(operatePermissions);
             entity.setId(dto.getId());
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
+            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+                // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
+                final ReportingTaskDTO opsDto = new ReportingTaskDTO();
+                opsDto.setId(dto.getId());
+                opsDto.setName(dto.getId());
+                opsDto.setState(dto.getState());
+                opsDto.setValidationStatus(dto.getValidationStatus());
+                entity.setComponent(opsDto);
             }
         }
 
