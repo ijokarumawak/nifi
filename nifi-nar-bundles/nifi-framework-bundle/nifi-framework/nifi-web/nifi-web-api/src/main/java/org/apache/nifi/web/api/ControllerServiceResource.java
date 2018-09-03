@@ -187,8 +187,8 @@ public class ControllerServiceResource extends ApplicationResource {
 
         // authorize access
         serviceFacade.authorizeAccess(lookup -> {
-            final Authorizable authorizable = new OperationAuthorizable(lookup.getControllerService(id).getAuthorizable());
-            authorizable.authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
+            final Authorizable controllerService = lookup.getControllerService(id).getAuthorizable();
+            OperationAuthorizable.authorize(controllerService, authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
         });
 
         // get the controller service
@@ -444,7 +444,7 @@ public class ControllerServiceResource extends ApplicationResource {
             value = "Updates a controller services references",
             response = ControllerServiceReferencingComponentsEntity.class,
             authorizations = {
-                    @Authorization(value = "Write - /{component-type}/{uuid} - For each referencing component specified")
+                    @Authorization(value = "Write - /{component-type}/{uuid} or /operate/{component-type}/{uuid} - For each referencing component specified")
             }
     )
     @ApiResponses(
@@ -531,7 +531,7 @@ public class ControllerServiceResource extends ApplicationResource {
                 lookup -> {
                     requestReferencingRevisions.entrySet().stream().forEach(e -> {
                         final Authorizable controllerService = lookup.getControllerServiceReferencingComponent(id, e.getKey());
-                        controllerService.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                        OperationAuthorizable.authorize(controllerService, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
                     });
                 },
                 () -> serviceFacade.verifyUpdateControllerServiceReferencingComponents(requestUpdateReferenceRequest.getId(), verifyScheduledState, verifyControllerServiceState),

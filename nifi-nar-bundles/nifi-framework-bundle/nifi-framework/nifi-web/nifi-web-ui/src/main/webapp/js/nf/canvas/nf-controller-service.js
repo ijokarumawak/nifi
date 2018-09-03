@@ -541,7 +541,7 @@
                     var serviceBulletins = $('<div class="referencing-component-bulletins"></div>').addClass(referencingComponent.id + '-bulletins');
 
                     // type
-                    var serviceType = $('<span class="referencing-component-type"></span>').text(nfCommon.substringAfterLast(referencingComponent.type, '.'));
+                    var serviceType = $('<span class="referencing-component-type"></span>').text(referencingComponent.type);
 
                     // service
                     var serviceItem = $('<li></li>').append(serviceTwist).append(serviceState).append(serviceBulletins).append(serviceLink).append(serviceType).append(referencingServiceReferencesContainer);
