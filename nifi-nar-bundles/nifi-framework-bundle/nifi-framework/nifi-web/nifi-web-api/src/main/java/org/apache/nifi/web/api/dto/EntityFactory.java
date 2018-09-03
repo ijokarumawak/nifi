@@ -433,12 +433,14 @@ public final class EntityFactory {
         return entity;
     }
 
-    public RemoteProcessGroupEntity createRemoteProcessGroupEntity(final RemoteProcessGroupDTO dto, final RevisionDTO revision, final PermissionsDTO permissions,
+    public RemoteProcessGroupEntity createRemoteProcessGroupEntity(final RemoteProcessGroupDTO dto, final RevisionDTO revision,
+                                                                   final PermissionsDTO permissions, final PermissionsDTO operatePermissions,
                                                                    final RemoteProcessGroupStatusDTO status, final List<BulletinEntity> bulletins) {
         final RemoteProcessGroupEntity entity = new RemoteProcessGroupEntity();
         entity.setRevision(revision);
         if (dto != null) {
             entity.setPermissions(permissions);
+            entity.setOperatePermissions(operatePermissions);
             entity.setStatus(status);
             entity.setId(dto.getId());
             entity.setPosition(dto.getPosition());
@@ -447,12 +449,51 @@ public final class EntityFactory {
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
+
+            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+                // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
+                final RemoteProcessGroupDTO opsDto = new RemoteProcessGroupDTO();
+                opsDto.setId(dto.getId());
+                opsDto.setName(dto.getId());
+                opsDto.setTransmitting(dto.isTransmitting());
+                opsDto.setAuthorizationIssues(dto.getAuthorizationIssues());
+                opsDto.setFlowRefreshed(dto.getFlowRefreshed());
+                opsDto.setParentGroupId(dto.getParentGroupId());
+
+                opsDto.setActiveRemoteInputPortCount(dto.getActiveRemoteInputPortCount());
+                opsDto.setActiveRemoteOutputPortCount(dto.getActiveRemoteOutputPortCount());
+                opsDto.setInactiveRemoteInputPortCount(dto.getInactiveRemoteInputPortCount());
+                opsDto.setInactiveRemoteOutputPortCount(dto.getInactiveRemoteOutputPortCount());
+                opsDto.setInputPortCount(dto.getInputPortCount());
+                opsDto.setOutputPortCount(dto.getOutputPortCount());
+
+                final RemoteProcessGroupContentsDTO opsContentsDto = new RemoteProcessGroupContentsDTO();
+                opsDto.setContents(opsContentsDto);
+                final RemoteProcessGroupContentsDTO contentsDto = dto.getContents();
+                opsContentsDto.setInputPorts(contentsDto.getInputPorts().stream()
+                        .map(this::createRemoteProcessGroupPortDtoForOperation).collect(Collectors.toSet()));
+                opsContentsDto.setOutputPorts(contentsDto.getOutputPorts().stream()
+                        .map(this::createRemoteProcessGroupPortDtoForOperation).collect(Collectors.toSet()));
+
+                entity.setComponent(opsDto);
             }
         }
         return entity;
     }
 
-    public RemoteProcessGroupPortEntity createRemoteProcessGroupPortEntity(final RemoteProcessGroupPortDTO dto, final RevisionDTO revision, final PermissionsDTO permissions) {
+    private RemoteProcessGroupPortDTO createRemoteProcessGroupPortDtoForOperation(RemoteProcessGroupPortDTO port) {
+        final RemoteProcessGroupPortDTO opsPort = new RemoteProcessGroupPortDTO();
+        opsPort.setId(port.getId());
+        opsPort.setName(port.getId());
+        opsPort.setGroupId(port.getGroupId());
+        opsPort.setTransmitting(port.isTransmitting());
+        opsPort.setConnected(port.isConnected());
+        opsPort.setExists(port.getExists());
+        opsPort.setTargetRunning(port.isTargetRunning());
+        return opsPort;
+    }
+
+    public RemoteProcessGroupPortEntity createRemoteProcessGroupPortEntity(final RemoteProcessGroupPortDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions) {
         final RemoteProcessGroupPortEntity entity = new RemoteProcessGroupPortEntity();
         entity.setRevision(revision);
         if (dto != null) {
@@ -460,6 +501,9 @@ public final class EntityFactory {
             entity.setId(dto.getId());
             if (permissions != null && permissions.getCanRead()) {
                 entity.setRemoteProcessGroupPort(dto);
+            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+                // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
+                entity.setRemoteProcessGroupPort(createRemoteProcessGroupPortDtoForOperation(dto));
             }
         }
 

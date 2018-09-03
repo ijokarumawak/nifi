@@ -793,14 +793,11 @@
                 // build the entity
                 var entity = {
                     'revision': nfClient.getRevision(d),
-                    'component': {
-                        'id': d.id,
-                        'transmitting': true
-                    }
+                    'state': 'TRANSMITTING'
                 };
 
                 // start transmitting
-                updateResource(d.uri, entity).done(function (response) {
+                updateResource(d.uri + '/run-status', entity).done(function (response) {
                     nfRemoteProcessGroup.set(response);
                 });
             });
@@ -821,13 +818,10 @@
                 // build the entity
                 var entity = {
                     'revision': nfClient.getRevision(d),
-                    'component': {
-                        'id': d.id,
-                        'transmitting': false
-                    }
+                    'state': 'STOPPED'
                 };
 
-                updateResource(d.uri, entity).done(function (response) {
+                updateResource(d.uri + '/run-status', entity).done(function (response) {
                     nfRemoteProcessGroup.set(response);
                 });
             });

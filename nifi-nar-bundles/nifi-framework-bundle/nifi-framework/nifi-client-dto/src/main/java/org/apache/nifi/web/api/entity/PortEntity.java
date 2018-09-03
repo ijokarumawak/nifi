@@ -69,6 +69,12 @@ public class PortEntity extends ComponentEntity implements Permissible<PortDTO>,
         this.portType = portType;
     }
 
+    /**
+     * @return The permissions for this component operations
+     */
+    @ApiModelProperty(
+            value = "The permissions for this component operations."
+    )
     @Override
     public PermissionsDTO getOperatePermissions() {
         return operatePermissions;

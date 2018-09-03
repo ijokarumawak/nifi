@@ -75,9 +75,7 @@ public class ProcessorEntity extends ComponentEntity implements Permissible<Proc
     }
 
     /**
-     * The permissions for this component operations.
-     *
-     * @return The permissions
+     * @return The permissions for this component operations
      */
     @ApiModelProperty(
             value = "The permissions for this component operations."

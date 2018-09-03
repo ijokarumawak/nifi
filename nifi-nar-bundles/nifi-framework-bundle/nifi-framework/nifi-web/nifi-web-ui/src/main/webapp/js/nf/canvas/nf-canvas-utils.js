@@ -1282,7 +1282,7 @@
                 return false;
             }
 
-            if (nfCanvasUtils.canModify(selection) === false || nfCanvasUtils.canRead(selection) === false) {
+            if (nfCanvasUtils.canModify(selection) === false && nfCanvasUtils.canOperate(selection) === false) {
                 return false;
             }
 
@@ -1319,7 +1319,7 @@
                 return false;
             }
 
-            if (nfCanvasUtils.canModify(selection) === false || nfCanvasUtils.canRead(selection) === false) {
+            if (nfCanvasUtils.canModify(selection) === false && nfCanvasUtils.canOperate(selection) === false) {
                 return false;
             }
 

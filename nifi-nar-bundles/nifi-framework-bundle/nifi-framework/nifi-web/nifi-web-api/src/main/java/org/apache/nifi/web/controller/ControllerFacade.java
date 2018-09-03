@@ -886,6 +886,7 @@ public class ControllerFacade implements Authorizable {
             resources.add(ResourceFactory.getDataResource(remoteProcessGroupResource));
             resources.add(ResourceFactory.getProvenanceDataResource(remoteProcessGroupResource));
             resources.add(ResourceFactory.getPolicyResource(remoteProcessGroupResource));
+            resources.add(ResourceFactory.getOperationResource(remoteProcessGroupResource));
         }
 
         // add each input port
