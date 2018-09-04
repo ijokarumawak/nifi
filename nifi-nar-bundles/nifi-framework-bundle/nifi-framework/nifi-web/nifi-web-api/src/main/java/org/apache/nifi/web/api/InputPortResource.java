@@ -33,11 +33,9 @@ import org.apache.nifi.web.NiFiServiceFacade;
 import org.apache.nifi.web.Revision;
 import org.apache.nifi.web.api.dto.PortDTO;
 import org.apache.nifi.web.api.dto.PositionDTO;
-import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.entity.PortEntity;
 import org.apache.nifi.web.api.entity.PortRunStatusEntity;
 import org.apache.nifi.web.api.entity.ProcessorEntity;
-import org.apache.nifi.web.api.entity.ProcessorRunStatusEntity;
 import org.apache.nifi.web.api.request.ClientIdParameter;
 import org.apache.nifi.web.api.request.LongParameter;
 
@@ -361,13 +359,15 @@ public class InputPortResource extends ApplicationResource {
                     required = true
             ) final PortRunStatusEntity requestRunStatus) {
 
-        if (requestRunStatus == null || requestRunStatus.getState() == null || requestRunStatus.getState().isEmpty()) {
+        if (requestRunStatus == null) {
             throw new IllegalArgumentException("Port run status must be specified.");
         }
 
         if (requestRunStatus.getRevision() == null) {
             throw new IllegalArgumentException("Revision must be specified.");
         }
+
+        requestRunStatus.validateState();
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRunStatus);

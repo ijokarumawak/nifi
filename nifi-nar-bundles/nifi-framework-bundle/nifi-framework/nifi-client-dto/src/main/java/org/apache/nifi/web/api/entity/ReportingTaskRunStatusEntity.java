@@ -26,6 +26,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "reportingTaskRunStatus")
 public class ReportingTaskRunStatusEntity extends ComponentRunStatusEntity {
 
+    private static String[] SUPPORTED_STATE = {"RUNNING", "STOPPED"};
+
+    @Override
+    protected String[] getSupportedState() {
+        return SUPPORTED_STATE;
+    }
+
     /**
      * Run status for this ReportingTask.
      * @return The run status

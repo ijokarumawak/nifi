@@ -712,13 +712,15 @@ public class ProcessorResource extends ApplicationResource {
                     required = true
             ) final ProcessorRunStatusEntity requestRunStatus) {
 
-        if (requestRunStatus == null || requestRunStatus.getState() == null || requestRunStatus.getState().isEmpty()) {
+        if (requestRunStatus == null) {
             throw new IllegalArgumentException("Processor run status must be specified.");
         }
 
         if (requestRunStatus.getRevision() == null) {
             throw new IllegalArgumentException("Revision must be specified.");
         }
+
+        requestRunStatus.validateState();
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRunStatus);

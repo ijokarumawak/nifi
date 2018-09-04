@@ -26,6 +26,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "processorRunStatus")
 public class ProcessorRunStatusEntity extends ComponentRunStatusEntity {
 
+    private static String[] SUPPORTED_STATE = {"RUNNING", "STOPPED", "DISABLED"};
+
+    @Override
+    protected String[] getSupportedState() {
+        return SUPPORTED_STATE;
+    }
+
     /**
      * Run status for this Processor.
      * @return The run status

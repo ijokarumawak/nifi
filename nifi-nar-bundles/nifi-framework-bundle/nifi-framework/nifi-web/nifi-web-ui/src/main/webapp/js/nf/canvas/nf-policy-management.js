@@ -532,7 +532,7 @@
             }, {
                 text: 'operate the component',
                 value: 'operate-component',
-                description: 'Allows users to modify component run status i.e. start/stop/enable/disable'
+                description: 'Allows users to operate components by changing component run status (start/stop/enable/disable), remote port transmission status, or terminating processor threads'
             }, {
                 text: 'view provenance',
                 value: 'read-provenance',
@@ -574,7 +574,7 @@
                         $('#selected-policy-action').text('write');
                     } else if (option.value === 'operate-component') {
                         $('#selected-policy-action').text('write');
-                        resource = ('run-status/' + resource);
+                        resource = ('operation/' + resource);
                     } else if (option.value === 'read-data') {
                         $('#selected-policy-action').text('read');
                         resource = ('data/' + resource);

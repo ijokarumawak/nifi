@@ -26,6 +26,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "remotePortRunStatus")
 public class RemotePortRunStatusEntity extends ComponentRunStatusEntity {
 
+    private static String[] SUPPORTED_STATE = {"TRANSMITTING", "STOPPED"};
+
+    @Override
+    protected String[] getSupportedState() {
+        return SUPPORTED_STATE;
+    }
+
     /**
      * Run status for this RemotePort.
      * @return The run status

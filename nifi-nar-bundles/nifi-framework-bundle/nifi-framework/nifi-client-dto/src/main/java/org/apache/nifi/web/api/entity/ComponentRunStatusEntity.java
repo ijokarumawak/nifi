@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 
 import javax.xml.bind.annotation.XmlType;
+import java.util.Arrays;
 
 /**
  * Run status for a given component.
@@ -68,6 +69,18 @@ public abstract class ComponentRunStatusEntity extends Entity {
 
     public void setDisconnectedNodeAcknowledged(Boolean disconnectedNodeAcknowledged) {
         this.disconnectedNodeAcknowledged = disconnectedNodeAcknowledged;
+    }
+
+    protected abstract String[] getSupportedState();
+
+    public void validateState() {
+        if (state == null || state.isEmpty()) {
+            throw new IllegalArgumentException("The desired state is not set.");
+        }
+
+        if (Arrays.stream(getSupportedState()).noneMatch(state::equals)) {
+            throw new IllegalArgumentException(String.format("The desired state '%s' is not supported.", state));
+        }
     }
 
 }

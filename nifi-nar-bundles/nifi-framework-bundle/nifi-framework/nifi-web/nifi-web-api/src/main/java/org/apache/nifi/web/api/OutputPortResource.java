@@ -360,13 +360,15 @@ public class OutputPortResource extends ApplicationResource {
                     required = true
             ) final PortRunStatusEntity requestRunStatus) {
 
-        if (requestRunStatus == null || requestRunStatus.getState() == null || requestRunStatus.getState().isEmpty()) {
+        if (requestRunStatus == null) {
             throw new IllegalArgumentException("Port run status must be specified.");
         }
 
         if (requestRunStatus.getRevision() == null) {
             throw new IllegalArgumentException("Revision must be specified.");
         }
+
+        requestRunStatus.validateState();
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRunStatus);

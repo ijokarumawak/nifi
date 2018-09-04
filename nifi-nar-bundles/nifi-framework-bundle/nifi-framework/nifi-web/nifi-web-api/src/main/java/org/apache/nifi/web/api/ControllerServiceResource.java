@@ -796,6 +796,8 @@ public class ControllerServiceResource extends ApplicationResource {
             throw new IllegalArgumentException("Revision must be specified.");
         }
 
+        requestRunStatus.validateState();
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRunStatus);
         }  else if (isDisconnectedFromCluster()) {

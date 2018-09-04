@@ -491,6 +491,8 @@ public class RemoteProcessGroupResource extends ApplicationResource {
             throw new IllegalArgumentException("Revision must be specified.");
         }
 
+        requestRemotePortRunStatusEntity.validateState();
+
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRemotePortRunStatusEntity);
         } else if (isDisconnectedFromCluster()) {
@@ -583,6 +585,8 @@ public class RemoteProcessGroupResource extends ApplicationResource {
         if (requestRemotePortRunStatusEntity.getRevision() == null) {
             throw new IllegalArgumentException("Revision must be specified.");
         }
+
+        requestRemotePortRunStatusEntity.validateState();
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRemotePortRunStatusEntity);
@@ -793,6 +797,8 @@ public class RemoteProcessGroupResource extends ApplicationResource {
         if (requestRemotePortRunStatusEntity.getRevision() == null) {
             throw new IllegalArgumentException("Revision must be specified.");
         }
+
+        requestRemotePortRunStatusEntity.validateState();
 
         if (isReplicateRequest()) {
             return replicate(HttpMethod.PUT, requestRemotePortRunStatusEntity);
