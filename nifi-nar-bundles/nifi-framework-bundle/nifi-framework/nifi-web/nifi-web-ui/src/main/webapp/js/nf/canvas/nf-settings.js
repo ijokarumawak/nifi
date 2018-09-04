@@ -1051,7 +1051,10 @@
                 if (dataContext.component.state === 'RUNNING') {
                     markup += '<div title="Stop" class="pointer stop-reporting-task fa fa-stop"></div>';
                 } else if (dataContext.component.state === 'STOPPED' || dataContext.component.state === 'DISABLED') {
-                    markup += '<div title="Edit" class="pointer edit-reporting-task fa fa-pencil"></div>';
+
+                    if (canWrite) {
+                        markup += '<div title="Edit" class="pointer edit-reporting-task fa fa-pencil"></div>';
+                    }
 
                     // support starting when stopped and no validation errors
                     if (dataContext.component.state === 'STOPPED' && nfCommon.isEmpty(dataContext.component.validationStatus === 'VALID')) {
