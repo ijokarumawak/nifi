@@ -178,7 +178,7 @@
         // will attempt to reload B which is no longer a known service. also ensure
         // we have permissions to reload the service
         if (nfCommon.isUndefined(controllerServiceEntity)
-            || (controllerServiceEntity.permissions.canRead === false && controllerServiceEntity.operatePermissions.canRead === false)) {
+            || (controllerServiceEntity.permissions.canRead === false && controllerServiceEntity.operatePermissions.canWrite === false)) {
             return $.Deferred(function (deferred) {
                 deferred.reject();
             }).promise();
@@ -234,7 +234,7 @@
         // reload all dependent processors if they are currently visible
         $.each(controllerService.referencingComponents, function (_, referencingComponentEntity) {
             // ensure we can read the referencing component prior to reloading
-            if (referencingComponentEntity.permissions.canRead === false && referencingComponentEntity.operatePermissions.canRead === false) {
+            if (referencingComponentEntity.permissions.canRead === false && referencingComponentEntity.operatePermissions.canWrite === false) {
                 return;
             }
 
@@ -455,7 +455,8 @@
         var unauthorized = $('<ul class="referencing-component-listing clear"></ul>');
         $.each(referencingComponents, function (_, referencingComponentEntity) {
             // check the access policy for this referencing component
-            if (referencingComponentEntity.permissions.canRead === false && referencingComponentEntity.operatePermissions.canRead === false) {
+            if ((referencingComponentEntity.permissions.canRead === false || referencingComponentEntity.permissions.canWrite === false)
+                    && referencingComponentEntity.operatePermissions.canWrite === false) {
                 var unauthorizedReferencingComponent = $('<div class="unset"></div>').text(referencingComponentEntity.id);
                 unauthorized.append(unauthorizedReferencingComponent);
             } else {
@@ -1342,7 +1343,8 @@
         var hasUnauthorized = false;
 
         $.each(referencingComponents, function (_, referencingComponentEntity) {
-            if (referencingComponentEntity.permissions.canWrite === false && referencingComponentEntity.operatePermissions.canWrite === false) {
+            if ((referencingComponentEntity.permissions.canRead === false || referencingComponentEntity.permissions.canWrite === false)
+                    && referencingComponentEntity.operatePermissions.canWrite === false) {
                 hasUnauthorized = true;
                 return false;
             }
@@ -2198,7 +2200,7 @@
                 controllerServiceData.deleteItem(controllerServiceEntity.id);
 
                 // reload the as necessary
-                if (controllerServiceEntity.permissions.canRead || controllerServiceEntity.operatePermissions.canRead) {
+                if (controllerServiceEntity.permissions.canRead || controllerServiceEntity.operatePermissions.canWrite) {
                     reloadControllerServiceReferences(serviceTable, controllerServiceEntity.component);
                 }
             }).fail(nfErrorHandler.handleAjaxError);

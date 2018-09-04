@@ -454,7 +454,7 @@ public class RemoteProcessGroupResource extends ApplicationResource {
             notes = NON_GUARANTEED_ENDPOINT,
             response = RemoteProcessGroupPortEntity.class,
             authorizations = {
-                    @Authorization(value = "Write - /remote-process-groups/{uuid} or /operate/remote-process-groups/{uuid}")
+                    @Authorization(value = "Write - /remote-process-groups/{uuid} or /operation/remote-process-groups/{uuid}")
             }
     )
     @ApiResponses(
@@ -549,7 +549,7 @@ public class RemoteProcessGroupResource extends ApplicationResource {
             notes = NON_GUARANTEED_ENDPOINT,
             response = RemoteProcessGroupPortEntity.class,
             authorizations = {
-                    @Authorization(value = "Write - /remote-process-groups/{uuid} or /operate/remote-process-groups/{uuid}")
+                    @Authorization(value = "Write - /remote-process-groups/{uuid} or /operation/remote-process-groups/{uuid}")
             }
     )
     @ApiResponses(

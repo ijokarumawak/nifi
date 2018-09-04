@@ -450,7 +450,7 @@ public final class EntityFactory {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
 
-            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+            } else if (operatePermissions != null && operatePermissions.getCanWrite()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
                 final RemoteProcessGroupDTO opsDto = new RemoteProcessGroupDTO();
                 opsDto.setId(dto.getId());
@@ -501,7 +501,7 @@ public final class EntityFactory {
             entity.setId(dto.getId());
             if (permissions != null && permissions.getCanRead()) {
                 entity.setRemoteProcessGroupPort(dto);
-            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+            } else if (operatePermissions != null && operatePermissions.getCanWrite()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
                 entity.setRemoteProcessGroupPort(createRemoteProcessGroupPortDtoForOperation(dto));
             }
@@ -526,7 +526,7 @@ public final class EntityFactory {
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
-            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+            } else if (operatePermissions != null && operatePermissions.getCanWrite()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
                 final ReportingTaskDTO opsDto = new ReportingTaskDTO();
                 opsDto.setId(dto.getId());
@@ -563,7 +563,7 @@ public final class EntityFactory {
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
                 entity.setBulletins(bulletins);
-            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+            } else if (operatePermissions != null && operatePermissions.getCanWrite()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
                 final Set<ControllerServiceReferencingComponentEntity> opsRefs = dto.getReferencingComponents().stream()
                         .map(ref -> createControllerServiceReferencingComponentEntity(ref.getId(), ref.getComponent(), ref.getRevision(),
@@ -597,7 +597,7 @@ public final class EntityFactory {
 
             if (permissions != null && permissions.getCanRead()) {
                 entity.setComponent(dto);
-            } else if (operatePermissions != null && operatePermissions.getCanRead()) {
+            } else if (operatePermissions != null && operatePermissions.getCanWrite()) {
                 // If the user doesn't have read permission, but has operate permission, then populate values required to operate the component.
                 final ControllerServiceReferencingComponentDTO opsDto = new ControllerServiceReferencingComponentDTO();
                 opsDto.setId(dto.getId());

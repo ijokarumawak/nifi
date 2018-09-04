@@ -56,7 +56,8 @@ public class OperationAuthorizable implements Authorizable {
             authorizable.authorize(authorizer, requestAction, user);
         } catch (AccessDeniedException e) {
             logger.debug("Authorization failed with {}. Try authorizing with OperationAuthorizable.", authorizable, e);
-            new OperationAuthorizable(authorizable).authorize(authorizer, requestAction, user);
+            // Always use WRITE action for operation.
+            new OperationAuthorizable(authorizable).authorize(authorizer, RequestAction.WRITE, user);
         }
 
     }

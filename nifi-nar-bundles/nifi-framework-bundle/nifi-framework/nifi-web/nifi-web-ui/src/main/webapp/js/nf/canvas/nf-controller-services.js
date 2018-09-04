@@ -719,7 +719,7 @@
      * @returns {String}
      */
     var groupIdFormatter = function (row, cell, value, columnDef, dataContext) {
-        if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canRead) {
+        if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canWrite) {
             return '';
         }
 
@@ -891,7 +891,7 @@
         };
 
         var controllerServiceStateFormatter = function (row, cell, value, columnDef, dataContext) {
-            if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canRead) {
+            if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canWrite) {
                 return '';
             }
             

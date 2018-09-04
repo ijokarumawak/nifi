@@ -217,7 +217,7 @@ public class ProcessorResource extends ApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/threads")
     @ApiOperation(value = "Terminates a processor, essentially \"deleting\" its threads and any active tasks", response = ProcessorEntity.class, authorizations = {
-        @Authorization(value = "Write - /processors/{uuid} or /operate/processors/{uuid}")
+        @Authorization(value = "Write - /processors/{uuid} or /operation/processors/{uuid}")
     })
     @ApiResponses(value = {
         @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),

@@ -139,8 +139,8 @@ public class ControllerServiceEntityMerger implements ComponentEntityMerger<Cont
                     final ControllerServiceReferencingComponentDTO nodeReferencingComponent = nodeReferencingComponentEntity.getComponent();
 
                     final Boolean canRead = nodeReferencingComponentEntity.getPermissions().getCanRead();
-                    final Boolean canReadOperate = nodeReferencingComponentEntity.getOperatePermissions().getCanRead();
-                    if (canRead || canReadOperate) {
+                    final Boolean canOperate = nodeReferencingComponentEntity.getOperatePermissions().getCanWrite();
+                    if (canRead || canOperate) {
                         // handle active thread counts
                         if (nodeReferencingComponent.getActiveThreadCount() != null && nodeReferencingComponent.getActiveThreadCount() > 0) {
                             final Integer current = activeThreadCounts.get(nodeReferencingComponent.getId());

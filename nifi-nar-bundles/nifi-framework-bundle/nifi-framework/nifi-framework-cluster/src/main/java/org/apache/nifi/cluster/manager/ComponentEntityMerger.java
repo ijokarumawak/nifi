@@ -53,8 +53,8 @@ public interface ComponentEntityMerger<EntityType extends ComponentEntity & Perm
         }
 
         final Boolean canRead = clientEntity.getPermissions().getCanRead();
-        final Boolean canReadOperate = clientEntity instanceof OperationPermissible
-                && ((OperationPermissible) clientEntity).getOperatePermissions().getCanRead();
+        final Boolean canOperate = clientEntity instanceof OperationPermissible
+                && ((OperationPermissible) clientEntity).getOperatePermissions().getCanWrite();
 
         if (canRead) {
             final Map<NodeIdentifier, List<BulletinEntity>> bulletinEntities = new HashMap<>();
@@ -82,7 +82,7 @@ public interface ComponentEntityMerger<EntityType extends ComponentEntity & Perm
             clientEntity.setBulletins(null);
         }
 
-        if (canRead || canReadOperate) {
+        if (canRead || canOperate) {
             mergeComponents(clientEntity, entityMap);
         } else {
             clientEntity.setComponent(null); // unchecked warning suppressed

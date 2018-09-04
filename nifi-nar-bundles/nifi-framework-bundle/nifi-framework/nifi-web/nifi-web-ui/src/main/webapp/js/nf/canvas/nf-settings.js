@@ -1006,7 +1006,7 @@
         };
 
         var reportingTaskRunStatusFormatter = function (row, cell, value, columnDef, dataContext) {
-            if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canRead) {
+            if (!dataContext.permissions.canRead && !dataContext.operatePermissions.canWrite) {
                 return '';
             }
 
@@ -1057,7 +1057,7 @@
                     }
 
                     // support starting when stopped and no validation errors
-                    if (dataContext.component.state === 'STOPPED' && nfCommon.isEmpty(dataContext.component.validationStatus === 'VALID')) {
+                    if (dataContext.component.state === 'STOPPED' && dataContext.component.validationStatus === 'VALID') {
                         markup += '<div title="Start" class="pointer start-reporting-task fa fa-play"></div>';
                     }
 
