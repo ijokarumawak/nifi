@@ -219,7 +219,8 @@ public final class EntityFactory {
         return entity;
     }
 
-    public PortEntity createPortEntity(final PortDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final PortStatusDTO status, final List<BulletinEntity> bulletins) {
+    public PortEntity createPortEntity(final PortDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions,
+                                       final PortStatusDTO status, final List<BulletinEntity> bulletins) {
         final PortEntity entity = new PortEntity();
         entity.setRevision(revision);
         if (dto != null) {
@@ -493,7 +494,8 @@ public final class EntityFactory {
         return opsPort;
     }
 
-    public RemoteProcessGroupPortEntity createRemoteProcessGroupPortEntity(final RemoteProcessGroupPortDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions) {
+    public RemoteProcessGroupPortEntity createRemoteProcessGroupPortEntity(final RemoteProcessGroupPortDTO dto, final RevisionDTO revision,
+                                                                           final PermissionsDTO permissions, final PermissionsDTO operatePermissions) {
         final RemoteProcessGroupPortEntity entity = new RemoteProcessGroupPortEntity();
         entity.setRevision(revision);
         if (dto != null) {
@@ -516,7 +518,8 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ReportingTaskEntity createReportingTaskEntity(final ReportingTaskDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final List<BulletinEntity> bulletins) {
+    public ReportingTaskEntity createReportingTaskEntity(final ReportingTaskDTO dto, final RevisionDTO revision,
+                                                         final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final List<BulletinEntity> bulletins) {
         final ReportingTaskEntity entity = new ReportingTaskEntity();
         entity.setRevision(revision);
         if (dto != null) {
@@ -552,7 +555,8 @@ public final class EntityFactory {
         return entity;
     }
 
-    public ControllerServiceEntity createControllerServiceEntity(final ControllerServiceDTO dto, final RevisionDTO revision, final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final List<BulletinEntity> bulletins) {
+    public ControllerServiceEntity createControllerServiceEntity(final ControllerServiceDTO dto, final RevisionDTO revision,
+                                                                 final PermissionsDTO permissions, final PermissionsDTO operatePermissions, final List<BulletinEntity> bulletins) {
         final ControllerServiceEntity entity = new ControllerServiceEntity();
         entity.setRevision(revision);
         if (dto != null) {

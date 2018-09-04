@@ -40,7 +40,6 @@ import org.apache.nifi.web.UiExtensionType;
 import org.apache.nifi.web.api.dto.BundleDTO;
 import org.apache.nifi.web.api.dto.ComponentStateDTO;
 import org.apache.nifi.web.api.dto.ControllerServiceDTO;
-import org.apache.nifi.web.api.dto.ProcessorDTO;
 import org.apache.nifi.web.api.dto.PropertyDescriptorDTO;
 import org.apache.nifi.web.api.dto.RevisionDTO;
 import org.apache.nifi.web.api.entity.ComponentStateEntity;
@@ -162,7 +161,8 @@ public class ControllerServiceResource extends ApplicationResource {
             response = ControllerServiceEntity.class,
             authorizations = {
                     @Authorization(value = "Read - /controller-services/{uuid}"),
-                    @Authorization(value = "Write - /operation/controller-services/{uuid} : Only partial data can be returned if the user only has 'operation' but no 'controller-services' read privilege.")
+                    @Authorization(value = "Write - /operation/controller-services/{uuid} : Only partial data can be returned" +
+                            " if the user only has 'operation' but no 'controller-services' read privilege.")
             }
     )
     @ApiResponses(

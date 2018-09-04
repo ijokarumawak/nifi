@@ -200,7 +200,7 @@ public class ControllerServiceEntityMerger implements ComponentEntityMerger<Cont
                     mergeControllerServiceReferencingComponent(referencingComponent, nodeEntities);
                 } else {
                     referencingComponent.setPermissions(permissions);
-                    referencingComponent.setOperatePermissions(permissions);
+                    referencingComponent.setOperatePermissions(operatePermissions);
                     referencingComponent.setComponent(null);
                 }
             }
