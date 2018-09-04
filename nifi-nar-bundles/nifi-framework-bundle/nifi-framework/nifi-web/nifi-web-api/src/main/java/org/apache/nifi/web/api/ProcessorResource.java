@@ -217,7 +217,7 @@ public class ProcessorResource extends ApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/threads")
     @ApiOperation(value = "Terminates a processor, essentially \"deleting\" its threads and any active tasks", response = ProcessorEntity.class, authorizations = {
-        @Authorization(value = "Write - /processors/{uuid}")
+        @Authorization(value = "Write - /processors/{uuid} or /operate/processors/{uuid}")
     })
     @ApiResponses(value = {
         @ApiResponse(code = 400, message = "NiFi was unable to complete the request because it was invalid. The request should not be retried without modification."),
@@ -241,7 +241,7 @@ public class ProcessorResource extends ApplicationResource {
             requestProcessorEntity,
             lookup -> {
                 final Authorizable authorizable = lookup.getProcessor(id).getAuthorizable();
-                authorizable.authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+                OperationAuthorizable.authorize(authorizable, authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
             },
             () -> serviceFacade.verifyTerminateProcessor(id),
             processorEntity -> {
