@@ -27,43 +27,59 @@ import org.slf4j.LoggerFactory;
 /**
  * Authorizable for a component that can be scheduled by operators.
  */
-public class OperationAuthorizable implements Authorizable {
+public class OperationAuthorizable implements Authorizable, EnforcePolicyPermissionsThroughBaseResource {
     private static Logger logger = LoggerFactory.getLogger(OperationAuthorizable.class);
-    private final Authorizable authorizable;
+    private final Authorizable baseAuthorizable;
 
-    public OperationAuthorizable(final Authorizable authorizable) {
-        this.authorizable = authorizable;
+    public OperationAuthorizable(final Authorizable baseAuthorizable) {
+        this.baseAuthorizable = baseAuthorizable;
     }
 
     @Override
     public Authorizable getParentAuthorizable() {
         // Need to return parent operation authorizable. E.g. /operation/processor/xxxx -> /operation/process-group/yyyy -> /run-status/process-group/root
-        if (authorizable.getParentAuthorizable() == null) {
+        if (baseAuthorizable.getParentAuthorizable() == null) {
             return null;
         } else {
-            return new OperationAuthorizable(authorizable.getParentAuthorizable());
+            return new OperationAuthorizable(baseAuthorizable.getParentAuthorizable());
         }
     }
 
     @Override
-    public Resource getResource() {
-        return ResourceFactory.getOperationResource(authorizable.getResource());
+    public Authorizable getBaseAuthorizable() {
+        return baseAuthorizable;
     }
 
-    public static void authorize(final Authorizable authorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
+    @Override
+    public Resource getResource() {
+        return ResourceFactory.getOperationResource(baseAuthorizable.getResource());
+    }
+
+    /**
+     * <p>Authorize the request action with the resource using base authorizable and operation authorizable combination.</p>
+     *
+     * <p>This method authorizes the request with the base authorizable first. If the request is allowed, then finish authorization.
+     * If base authorizable denies the request, then it checks if the user has WRITE permission for '/operation/{componentType}/{id}'.</p>
+     */
+    public static void authorize(final Authorizable baseAuthorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
         try {
-            authorizable.authorize(authorizer, requestAction, user);
+            baseAuthorizable.authorize(authorizer, requestAction, user);
         } catch (AccessDeniedException e) {
-            logger.debug("Authorization failed with {}. Try authorizing with OperationAuthorizable.", authorizable, e);
+            logger.debug("Authorization failed with {}. Try authorizing with OperationAuthorizable.", baseAuthorizable, e);
             // Always use WRITE action for operation.
-            new OperationAuthorizable(authorizable).authorize(authorizer, RequestAction.WRITE, user);
+            new OperationAuthorizable(baseAuthorizable).authorize(authorizer, RequestAction.WRITE, user);
         }
 
     }
 
-    public static boolean isAuthorized(final Authorizable authorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
-        return authorizable.isAuthorized(authorizer, requestAction, user)
-                || new OperationAuthorizable(authorizable).isAuthorized(authorizer, requestAction, user);
+    /**
+     * Check if the request is authorized.
+     *
+     * @return True if the request is allowed by the base authorizable, or the user has WRITE permission for '/operation/{componentType}/id'.
+     */
+    public static boolean isAuthorized(final Authorizable baseAuthorizable, final Authorizer authorizer, final RequestAction requestAction, final NiFiUser user) {
+        return baseAuthorizable.isAuthorized(authorizer, requestAction, user)
+                || new OperationAuthorizable(baseAuthorizable).isAuthorized(authorizer, RequestAction.WRITE, user);
     }
 
 }
