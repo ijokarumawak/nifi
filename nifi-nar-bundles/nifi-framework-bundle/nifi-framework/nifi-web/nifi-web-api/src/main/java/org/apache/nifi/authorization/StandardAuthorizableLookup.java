@@ -469,9 +469,9 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
     }
 
     @Override
-    public Authorizable getAuthorizableFromResource(String resource) {
+    public Authorizable getAuthorizableFromResource(final String resource) {
         // parse the resource type
-        ResourceType resourceType = ResourceType.fromRawValue(resource);
+        final ResourceType resourceType = ResourceType.fromRawValue(resource);
         if (resourceType == null) {
             throw new ResourceNotFoundException("Unrecognized resource: " + resource);
         }
@@ -483,27 +483,26 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
             case DataTransfer:
             case ProvenanceData:
             case Operation:
-                final ResourceType primaryResourceType = resourceType;
 
                 // get the resource type
-                resource = StringUtils.substringAfter(resource, primaryResourceType.getValue());
-                resourceType = ResourceType.fromRawValue(resource);
+                final String baseResource = StringUtils.substringAfter(resource, resourceType.getValue());
+                final ResourceType baseResourceType = ResourceType.fromRawValue(baseResource);
 
-                if (resourceType == null) {
+                if (baseResourceType == null) {
                     throw new ResourceNotFoundException("Unrecognized base resource: " + resource);
                 }
 
-                switch (primaryResourceType) {
+                switch (resourceType) {
                     case Policy:
-                        return new AccessPolicyAuthorizable(getAccessPolicy(resourceType, resource));
+                        return new AccessPolicyAuthorizable(getAccessPolicy(baseResourceType, resource));
                     case Data:
-                        return new DataAuthorizable(getAccessPolicy(resourceType, resource));
+                        return new DataAuthorizable(getAccessPolicy(baseResourceType, resource));
                     case DataTransfer:
-                        return new DataTransferAuthorizable(getAccessPolicy(resourceType, resource));
+                        return new DataTransferAuthorizable(getAccessPolicy(baseResourceType, resource));
                     case ProvenanceData:
-                        return new ProvenanceDataAuthorizable(getAccessPolicy(resourceType, resource));
+                        return new ProvenanceDataAuthorizable(getAccessPolicy(baseResourceType, resource));
                     case Operation:
-                        return new OperationAuthorizable(getAccessPolicy(resourceType, resource));
+                        return new OperationAuthorizable(getAccessPolicy(baseResourceType, resource));
                 }
 
             case RestrictedComponents:
