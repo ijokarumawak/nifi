@@ -4170,7 +4170,6 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         entity.setId(connectable.getIdentifier());
 
         final Authorizable authorizable = getAuthorizable(connectable);
-        // TODO: Set operatePermissions, too
         final PermissionsDTO permissionsDto = dtoFactory.createPermissionsDto(authorizable);
         entity.setPermissions(permissionsDto);
 
@@ -4211,7 +4210,6 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         entity.setId(instance.getInstanceId());
 
         final Authorizable authorizable = getAuthorizable(componentTypeName, instance);
-        // TODO: Set operatePermissions, too
         final PermissionsDTO permissionsDto = dtoFactory.createPermissionsDto(authorizable);
         entity.setPermissions(permissionsDto);
 
