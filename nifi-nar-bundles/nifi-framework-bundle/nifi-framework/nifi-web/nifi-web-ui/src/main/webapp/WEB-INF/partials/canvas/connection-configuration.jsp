@@ -44,20 +44,58 @@
                     </div>
                     <div class="setting">
                         <div class="setting-name">
-                            Back pressure object threshold
-                            <div class="fa fa-question-circle" alt="Info" title="The maximum number of objects that can be queued before back pressure is applied."></div>
+                            Back pressure
                         </div>
-                        <div class="setting-field">
-                            <input type="text" id="back-pressure-object-threshold" name="back-pressure-object-threshold" class="setting-input"/>
+                    </div>
+                    <div class="multi-column-settings">
+                        <div class="setting">
+                            <div class="setting-name">
+                                Object threshold
+                                <div class="fa fa-question-circle" alt="Info" title="The maximum number of objects that can be queued before back pressure is applied."></div>
+                            </div>
+                            <div class="setting-field">
+                                <input type="text" id="back-pressure-object-threshold" name="back-pressure-object-threshold" class="setting-input"/>
+                            </div>
+                        </div>
+                        <div class="separator">&nbsp;</div>
+                        <div class="setting">
+                            <div class="setting-name">
+                                Size threshold
+                                <div class="fa fa-question-circle" alt="Info" title="The maximum data size of objects that can be queued before back pressure is applied."></div>
+                            </div>
+                            <div class="setting-field">
+                                <input type="text" id="back-pressure-data-size-threshold" name="back-pressure-data-size-threshold" class="setting-input"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="multi-column-settings">
+                        <div class="setting">
+                            <div class="setting-name">
+                                Load Balance Strategy
+                                <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
+                            </div>
+                            <div class="setting-field">
+                                <div id="load-balance-strategy-combo"></div>
+                            </div>
+                        </div>
+                        <div class="separator">&nbsp;</div>
+                        <div class="setting">
+                            <div class="setting-name">
+                                Attribute Name
+                                <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
+                            </div>
+                            <div class="setting-field">
+                                <input type="text" id="load-balance-partition-attribute" name="load-balance-partition-attribute" class="setting-input"/>
+                            </div>
                         </div>
                     </div>
                     <div class="setting">
                         <div class="setting-name">
-                            Back pressure data size threshold
-                            <div class="fa fa-question-circle" alt="Info" title="The maximum data size of objects that can be queued before back pressure is applied."></div>
+                            Load Balance Compression
+                            <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
                         </div>
                         <div class="setting-field">
-                            <input type="text" id="back-pressure-data-size-threshold" name="back-pressure-data-size-threshold" class="setting-input"/>
+                            <div id="load-balance-compression-combo"></div>
                         </div>
                     </div>
                 </div>

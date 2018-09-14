@@ -1007,6 +1007,9 @@
         var backPressureObjectThreshold = $('#back-pressure-object-threshold').val();
         var backPressureDataSizeThreshold = $('#back-pressure-data-size-threshold').val();
         var prioritizers = $('#prioritizer-selected').sortable('toArray');
+        var loadBalanceStrategy = $('#load-balance-strategy-combo').combo('getSelectedOption').value;
+        var loadBalancePartitionAttribute = $('#load-balance-partition-attribute').val();
+        var loadBalanceCompression = $('#load-balance-compression-combo').combo('getSelectedOption').value;
 
         if (validateSettings()) {
             var d = nfConnection.get(connectionId);
@@ -1025,7 +1028,10 @@
                     'flowFileExpiration': flowFileExpiration,
                     'backPressureDataSizeThreshold': backPressureDataSizeThreshold,
                     'backPressureObjectThreshold': backPressureObjectThreshold,
-                    'prioritizers': prioritizers
+                    'prioritizers': prioritizers,
+                    'loadBalanceStrategy': loadBalanceStrategy,
+                    'loadBalancePartitionAttribute': loadBalancePartitionAttribute,
+                    'loadBalanceCompression': loadBalanceCompression
                 }
             };
 
@@ -1222,6 +1228,39 @@
                 }]
             });
 
+            // initialize the load balance strategy combo
+            $('#load-balance-strategy-combo').combo({
+                options: [{
+                    text: 'Do not load balance',
+                    value: 'DO_NOT_LOAD_BALANCE'
+                }, {
+                    text: 'Partition by attribute',
+                    value: 'PARTITION_BY_ATTRIBUTE'
+                }, {
+                    text: 'Round robin',
+                    value: 'ROUND_ROBIN'
+                }, {
+                    text: 'Single node',
+                    value: 'SINGLE_NODE'
+                }]
+            });
+
+
+            // initialize the load balance compression combo
+            $('#load-balance-compression-combo').combo({
+                options: [{
+                    text: 'Do not compress',
+                    value: 'DO_NOT_COMPRESS'
+                }, {
+                    text: 'Compress attributes only',
+                    value: 'COMPRESS_ATTRIBUTES_ONLY'
+                }, {
+                    text: 'Compress attributes and content',
+                    value: 'COMPRESS_ATTRIBUTES_AND_CONTENT'
+                }]
+            });
+
+
             // load the processor prioritizers
             $.ajax({
                 type: 'GET',
@@ -1392,6 +1431,14 @@
                     $('#flow-file-expiration').val(connection.flowFileExpiration);
                     $('#back-pressure-object-threshold').val(connection.backPressureObjectThreshold);
                     $('#back-pressure-data-size-threshold').val(connection.backPressureDataSizeThreshold);
+
+                    // select the load balance combos
+                    $('#load-balance-strategy-combo').combo('setSelectedOption', {
+                        value: connection.loadBalanceStrategy
+                    });
+                    $('#load-balance-compression-combo').combo('setSelectedOption', {
+                        value: connection.loadBalanceCompression
+                    });
 
                     // format the connection id
                     nfCommon.populateField('connection-id', connection.id);
