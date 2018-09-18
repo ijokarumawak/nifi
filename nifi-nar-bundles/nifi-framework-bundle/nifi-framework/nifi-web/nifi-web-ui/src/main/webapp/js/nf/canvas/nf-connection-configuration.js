@@ -1008,8 +1008,9 @@
         var backPressureDataSizeThreshold = $('#back-pressure-data-size-threshold').val();
         var prioritizers = $('#prioritizer-selected').sortable('toArray');
         var loadBalanceStrategy = $('#load-balance-strategy-combo').combo('getSelectedOption').value;
-        var loadBalancePartitionAttribute = $('#load-balance-partition-attribute').val();
-        var loadBalanceCompression = $('#load-balance-compression-combo').combo('getSelectedOption').value;
+        var shouldLoadBalance = 'DO_NOT_LOAD_BALANCE' !== loadBalanceStrategy;
+        var loadBalancePartitionAttribute = shouldLoadBalance && 'PARTITION_BY_ATTRIBUTE' === loadBalanceStrategy ? $('#load-balance-partition-attribute').val() : '';
+        var loadBalanceCompression = shouldLoadBalance ? $('#load-balance-compression-combo').combo('getSelectedOption').value : 'DO_NOT_COMPRESS';
 
         if (validateSettings()) {
             var d = nfConnection.get(connectionId);
@@ -1242,7 +1243,20 @@
                 }, {
                     text: 'Single node',
                     value: 'SINGLE_NODE'
-                }]
+                }],
+                select: function (selectedOption) {
+                    // Show the appropriate configurations
+                    if (selectedOption.value === 'PARTITION_BY_ATTRIBUTE') {
+                        $('#load-balance-partition-attribute-setting').show();
+                    } else {
+                        $('#load-balance-partition-attribute-setting').hide();
+                    }
+                    if (selectedOption.value === 'DO_NOT_LOAD_BALANCE') {
+                        $('#load-balance-compression-setting').hide();
+                    } else {
+                        $('#load-balance-compression-setting').show();
+                    }
+                }
             });
 
 
@@ -1259,7 +1273,6 @@
                     value: 'COMPRESS_ATTRIBUTES_AND_CONTENT'
                 }]
             });
-
 
             // load the processor prioritizers
             $.ajax({
@@ -1433,12 +1446,17 @@
                     $('#back-pressure-data-size-threshold').val(connection.backPressureDataSizeThreshold);
 
                     // select the load balance combos
-                    $('#load-balance-strategy-combo').combo('setSelectedOption', {
-                        value: connection.loadBalanceStrategy
-                    });
-                    $('#load-balance-compression-combo').combo('setSelectedOption', {
-                        value: connection.loadBalanceCompression
-                    });
+                    if (nf.ClusterSummary.isClustered()) {
+                        $('#load-balance-strategy-combo').combo('setSelectedOption', {
+                            value: connection.loadBalanceStrategy
+                        });
+                        $('#load-balance-compression-combo').combo('setSelectedOption', {
+                            value: connection.loadBalanceCompression
+                        });
+                        $('#load-balance-settings').show();
+                    } else {
+                        $('#load-balance-settings').hide();
+                    }
 
                     // format the connection id
                     nfCommon.populateField('connection-id', connection.id);

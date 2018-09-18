@@ -42,15 +42,10 @@
                             <input type="text" id="flow-file-expiration" name="flow-file-expiration" class="setting-input"/>
                         </div>
                     </div>
-                    <div class="setting">
-                        <div class="setting-name">
-                            Back pressure
-                        </div>
-                    </div>
                     <div class="multi-column-settings">
                         <div class="setting">
                             <div class="setting-name">
-                                Object threshold
+                                Back Pressure<br/>Object threshold
                                 <div class="fa fa-question-circle" alt="Info" title="The maximum number of objects that can be queued before back pressure is applied."></div>
                             </div>
                             <div class="setting-field">
@@ -60,7 +55,7 @@
                         <div class="separator">&nbsp;</div>
                         <div class="setting">
                             <div class="setting-name">
-                                Size threshold
+                                &nbsp;<br/>Size threshold
                                 <div class="fa fa-question-circle" alt="Info" title="The maximum data size of objects that can be queued before back pressure is applied."></div>
                             </div>
                             <div class="setting-field">
@@ -68,34 +63,36 @@
                             </div>
                         </div>
                     </div>
-                    <div class="multi-column-settings">
-                        <div class="setting">
+                    <div id="load-balance-settings">
+                        <div class="multi-column-settings">
+                            <div class="setting">
+                                <div class="setting-name">
+                                    Load Balance Strategy
+                                    <div class="fa fa-question-circle" alt="Info" title="How to load balance the data in this Connection across the nodes in the cluster."></div>
+                                </div>
+                                <div class="setting-field">
+                                    <div id="load-balance-strategy-combo"></div>
+                                </div>
+                            </div>
+                            <div class="separator">&nbsp;</div>
+                            <div id="load-balance-partition-attribute-setting" class="setting">
+                                <div class="setting-name">
+                                    Attribute Name
+                                    <div class="fa fa-question-circle" alt="Info" title="The FlowFile Attribute to use for determining which node a FlowFile will go to."></div>
+                                </div>
+                                <div class="setting-field">
+                                    <input type="text" id="load-balance-partition-attribute" name="load-balance-partition-attribute" class="setting-input"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="load-balance-compression-setting" class="setting">
                             <div class="setting-name">
-                                Load Balance Strategy
-                                <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
+                                Load Balance Compression
+                                <div class="fa fa-question-circle" alt="Info" title="Whether or not data should be compressed when being transferred between nodes in the cluster."></div>
                             </div>
                             <div class="setting-field">
-                                <div id="load-balance-strategy-combo"></div>
+                                <div id="load-balance-compression-combo"></div>
                             </div>
-                        </div>
-                        <div class="separator">&nbsp;</div>
-                        <div class="setting">
-                            <div class="setting-name">
-                                Attribute Name
-                                <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
-                            </div>
-                            <div class="setting-field">
-                                <input type="text" id="load-balance-partition-attribute" name="load-balance-partition-attribute" class="setting-input"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="setting">
-                        <div class="setting-name">
-                            Load Balance Compression
-                            <div class="fa fa-question-circle" alt="Info" title="TODO"></div>
-                        </div>
-                        <div class="setting-field">
-                            <div id="load-balance-compression-combo"></div>
                         </div>
                     </div>
                 </div>
