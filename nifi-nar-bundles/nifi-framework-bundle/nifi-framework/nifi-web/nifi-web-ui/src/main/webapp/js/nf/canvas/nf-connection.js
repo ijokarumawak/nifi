@@ -1385,16 +1385,14 @@
 
                         }).select('title').text(function () {
                             if (d.permissions.canRead) {
-                                var loadBalanceStrategyOption = $('#load-balance-strategy-combo').data().options.options
-                                                                    .find(option => d.component.loadBalanceStrategy === option.value)
-                                var loadBalanceStrategy = nfCommon.isDefinedAndNotNull(loadBalanceStrategyOption) ? loadBalanceStrategyOption.text : 'undefined'
-                                var loadBalanceCompression = 'no compression'
+                                var loadBalanceStrategy = nfCommon.getComboOptionText($('#load-balance-strategy-combo'), d.component.loadBalanceStrategy);
+                                var loadBalanceCompression = 'no compression';
                                 switch (d.component.loadBalanceCompression) {
                                     case 'COMPRESS_ATTRIBUTES_ONLY':
-                                        loadBalanceCompression = '\'Attribute\' compression'
+                                        loadBalanceCompression = '\'Attribute\' compression';
                                         break;
                                     case 'COMPRESS_ATTRIBUTES_AND_CONTENT':
-                                        loadBalanceCompression = '\'Attribute and content\' compression'
+                                        loadBalanceCompression = '\'Attribute and content\' compression';
                                         break;
                                 }
                                 var loadBalanceStatus = 'LOAD_BALANCE_ACTIVE' === d.component.loadBalanceStatus ? ' Actively balancing...' : '';

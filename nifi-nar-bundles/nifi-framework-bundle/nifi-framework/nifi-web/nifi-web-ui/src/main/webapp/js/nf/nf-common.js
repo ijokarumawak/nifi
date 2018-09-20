@@ -1640,7 +1640,20 @@
                 })
                 .map(policyTypeListing, d3.map);
             return nest.get(value)[0];
+        },
+
+        /**
+         * Find the corresponding combo option text from a combo option value.
+         *
+         * @param {object} combo    The combo object
+         * @param {string} value    The target value
+         * @returns {string}        The matched option text or undefined if not found
+         */
+        getComboOptionText: function (combo, value) {
+            var matchedOption = combo.data().options.options.find(option => option.value === value)
+            return nfCommon.isDefinedAndNotNull(matchedOption) ? matchedOption.text : undefined;
         }
+
     };
 
     return nfCommon;
