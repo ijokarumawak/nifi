@@ -74,7 +74,7 @@
                                     <div id="load-balance-strategy-combo"></div>
                                 </div>
                             </div>
-                            <div class="separator">&nbsp;</div>
+                            <div id="load-balance-partition-attribute-setting-separator" class="separator">&nbsp;</div>
                             <div id="load-balance-partition-attribute-setting" class="setting">
                                 <div class="setting-name">
                                     Attribute Name
