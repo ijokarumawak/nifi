@@ -1386,6 +1386,10 @@
                         }).select('title').text(function () {
                             if (d.permissions.canRead) {
                                 var loadBalanceStrategy = nfCommon.getComboOptionText($('#load-balance-strategy-combo'), d.component.loadBalanceStrategy);
+                                if ('PARTITION_BY_ATTRIBUTE' === d.component.loadBalanceStrategy) {
+                                    loadBalanceStrategy += ' (' + d.component.loadBalancePartitionAttribute + ')'
+                                }
+
                                 var loadBalanceCompression = 'no compression';
                                 switch (d.component.loadBalanceCompression) {
                                     case 'COMPRESS_ATTRIBUTES_ONLY':

@@ -1106,6 +1106,10 @@
         if (nfCommon.isBlank($('#back-pressure-data-size-threshold').val())) {
             errors.push('Back pressure data size threshold must be specified');
         }
+        if ($('#load-balance-strategy-combo').combo('getSelectedOption').value === 'PARTITION_BY_ATTRIBUTE'
+            && nfCommon.isBlank($('#load-balance-partition-attribute').val())) {
+            errors.push('Cannot set Load Balance Strategy to "Partition by attribute" without providing a partitioning "Attribute Name"');
+        }
 
         if (errors.length > 0) {
             nfDialog.showOkDialog({
@@ -1463,6 +1467,7 @@
                         $('#load-balance-compression-combo').combo('setSelectedOption', {
                             value: connection.loadBalanceCompression
                         });
+                        $('#load-balance-partition-attribute').val(connection.loadBalancePartitionAttribute);
                         $('#load-balance-settings').show();
                     } else {
                         $('#load-balance-settings').hide();
