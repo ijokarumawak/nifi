@@ -1650,7 +1650,9 @@
          * @returns {string}        The matched option text or undefined if not found
          */
         getComboOptionText: function (combo, value) {
-            var matchedOption = combo.data().options.options.find(option => option.value === value)
+            var matchedOption = combo.data().options.options.find(function (option) {
+                return option.value === value;
+            });
             return nfCommon.isDefinedAndNotNull(matchedOption) ? matchedOption.text : undefined;
         }
 
