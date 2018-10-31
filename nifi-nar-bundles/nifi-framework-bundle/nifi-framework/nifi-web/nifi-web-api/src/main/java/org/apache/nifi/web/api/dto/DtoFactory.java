@@ -1335,6 +1335,7 @@ public final class DtoFactory {
         // if this port is on the root group, determine if its actually connected to another nifi
         if (port instanceof RootGroupPort) {
             final RootGroupPort rootGroupPort = (RootGroupPort) port;
+            dto.setAllowRemoteAccess(true);
             dto.setTransmitting(rootGroupPort.isTransmitting());
             dto.setGroupAccessControl(rootGroupPort.getGroupAccessControl());
             dto.setUserAccessControl(rootGroupPort.getUserAccessControl());

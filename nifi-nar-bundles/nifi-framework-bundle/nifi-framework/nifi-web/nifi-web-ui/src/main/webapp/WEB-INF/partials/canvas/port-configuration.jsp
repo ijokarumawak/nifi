@@ -37,6 +37,12 @@
                 <span id="port-id"></span>
             </div>
         </div>
+        <div class="port-setting">
+            <div class="setting-field">
+                <div id="port-allow-remote-access" class="port-allow-remote-access nf-checkbox checkbox-unchecked"></div>
+                <span class="nf-checkbox-label"> Allow Remote Access</span>
+            </div>
+        </div>
         <div id="port-concurrent-task-container" class="port-setting">
             <div class="setting-name">
                 Concurrent tasks

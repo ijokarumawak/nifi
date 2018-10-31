@@ -91,11 +91,18 @@
                             port['concurrentlySchedulableTaskCount'] = $('#port-concurrent-tasks').val();
                         }
 
-                        // mark the processor disabled if appropriate
+                        // mark the port disabled if appropriate
                         if ($('#port-enabled').hasClass('checkbox-unchecked')) {
                             port['state'] = 'DISABLED';
                         } else if ($('#port-enabled').hasClass('checkbox-checked')) {
                             port['state'] = 'STOPPED';
+                        }
+
+                        // mark the port remotely accessible if appropriate
+                        if ($('#port-allow-remote-access').hasClass('checkbox-unchecked')) {
+                            port['allowRemoteAccess'] = false;
+                        } else if ($('#port-allow-remote-access').hasClass('checkbox-checked')) {
+                            port['allowRemoteAccess'] = true;
                         }
 
                         // build the port entity
