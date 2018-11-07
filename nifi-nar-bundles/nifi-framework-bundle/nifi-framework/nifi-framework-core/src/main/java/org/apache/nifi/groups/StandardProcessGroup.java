@@ -497,8 +497,6 @@ public final class StandardProcessGroup implements ProcessGroup {
             if (!(port instanceof RootGroupPort)) {
                 throw new IllegalArgumentException("Cannot add Input Port of type " + port.getClass().getName() + " to the Root Group");
             }
-        } else if (!(port instanceof LocalPort)) {
-            throw new IllegalArgumentException("Cannot add Input Port of type " + port.getClass().getName() + " to a non-root group");
         }
 
         writeLock.lock();

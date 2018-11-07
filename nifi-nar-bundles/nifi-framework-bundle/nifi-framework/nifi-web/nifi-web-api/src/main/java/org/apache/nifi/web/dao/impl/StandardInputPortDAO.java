@@ -73,13 +73,13 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
 
         // determine if this is the root group
         Port port;
-        if (group.getParent() == null) {
+        if (group.getParent() == null || portDTO.isAllowRemoteAccess()) {
             port = flowController.getFlowManager().createRemoteInputPort(portDTO.getId(), portDTO.getName());
         } else {
             port = flowController.getFlowManager().createLocalInputPort(portDTO.getId(), portDTO.getName());
         }
 
-        // ensure we can perform the update before we add the processor to the flow
+        // ensure we can perform the update before we add the port to the flow
         verifyUpdate(port, portDTO);
 
         // configure
@@ -178,6 +178,20 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
         // ensure we can do this update
         verifyUpdate(inputPort, portDTO);
 
+        // handle Port type change.
+        final boolean wasRootGroupPort = inputPort instanceof RootGroupPort;
+        final ProcessGroup processGroup = inputPort.getProcessGroup();
+        final boolean isRootGroup = processGroup.getParent() == null;
+        final boolean isAllowRemoteAccess = portDTO.isAllowRemoteAccess() != null ? portDTO.isAllowRemoteAccess() : wasRootGroupPort;
+        final boolean localToPublic = !wasRootGroupPort && (isAllowRemoteAccess || isRootGroup);
+        final boolean publicToLocal = wasRootGroupPort && !isAllowRemoteAccess;
+
+        if (localToPublic || publicToLocal) {
+            // recreate the port instance.
+            processGroup.removeInputPort(inputPort);
+            inputPort = createPort(processGroup.getIdentifier(), portDTO);
+        }
+
         // handle state transition
         if (isNotNull(portDTO.getState())) {
             final ScheduledState purposedScheduledState = ScheduledState.valueOf(portDTO.getState());
@@ -188,20 +202,20 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
                     // perform the appropriate action
                     switch (purposedScheduledState) {
                         case RUNNING:
-                            inputPort.getProcessGroup().startInputPort(inputPort);
+                            processGroup.startInputPort(inputPort);
                             break;
                         case STOPPED:
                             switch (inputPort.getScheduledState()) {
                                 case RUNNING:
-                                    inputPort.getProcessGroup().stopInputPort(inputPort);
+                                    processGroup.stopInputPort(inputPort);
                                     break;
                                 case DISABLED:
-                                    inputPort.getProcessGroup().enableInputPort(inputPort);
+                                    processGroup.enableInputPort(inputPort);
                                     break;
                             }
                             break;
                         case DISABLED:
-                            inputPort.getProcessGroup().disableInputPort(inputPort);
+                            processGroup.disableInputPort(inputPort);
                             break;
                     }
                 } catch (IllegalStateException ise) {
@@ -237,7 +251,7 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
             inputPort.setMaxConcurrentTasks(concurrentTasks);
         }
 
-        inputPort.getProcessGroup().onComponentModified();
+        processGroup.onComponentModified();
         return inputPort;
     }
 

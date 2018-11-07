@@ -178,6 +178,7 @@
                     $('#port-enabled').removeClass('checkbox-unchecked checkbox-checked');
                     $('#port-concurrent-tasks').val('');
                     $('#port-comments').val('');
+                    $('#port-allow-remote-access').removeClass('checkbox-unchecked checkbox-checked');
                 }
             }
         });
@@ -217,6 +218,8 @@
                 $('#port-enabled').removeClass('checkbox-unchecked checkbox-checked').addClass(portEnableStyle);
                 $('#port-concurrent-tasks').val(selectionData.component.concurrentlySchedulableTaskCount);
                 $('#port-comments').val(selectionData.component.comments);
+                $('#port-allow-remote-access').removeClass('checkbox-unchecked checkbox-checked')
+                    .addClass(true === selectionData.component.allowRemoteAccess ? 'checkbox-checked' : 'checkbox-unchecked');
 
                 // show the details
                 $('#port-configuration').modal('show');
