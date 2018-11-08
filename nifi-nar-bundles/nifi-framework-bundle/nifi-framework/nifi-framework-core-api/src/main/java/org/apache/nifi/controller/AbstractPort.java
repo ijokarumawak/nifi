@@ -61,12 +61,7 @@ public abstract class AbstractPort implements Port {
             .name("")
             .build();
 
-    public static final long MINIMUM_PENALIZATION_MILLIS = 0L;
-    public static final TimeUnit DEFAULT_TIME_UNIT = TimeUnit.MILLISECONDS;
-
-    public static final long MINIMUM_YIELD_MILLIS = 0L;
-    public static final long DEFAULT_YIELD_PERIOD = 10000L;
-    public static final TimeUnit DEFAULT_YIELD_TIME_UNIT = TimeUnit.MILLISECONDS;
+    private static final TimeUnit DEFAULT_TIME_UNIT = TimeUnit.MILLISECONDS;
 
     private final List<Relationship> relationships;
 

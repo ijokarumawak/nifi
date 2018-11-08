@@ -24,6 +24,7 @@ import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
+import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class LocalPort extends AbstractPort {
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
     private final Lock writeLock = rwLock.writeLock();
+    private PublicPort publicPort;
 
     public LocalPort(final String id, final String name, final ProcessGroup processGroup, final ConnectableType type, final ProcessScheduler scheduler) {
         super(id, name, processGroup, type, scheduler);
@@ -184,5 +186,10 @@ public class LocalPort extends AbstractPort {
     @Override
     public String getComponentType() {
         return "Local Port";
+    }
+
+    @Override
+    public PublicPort getPublicPort() {
+        return publicPort;
     }
 }

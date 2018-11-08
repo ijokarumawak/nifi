@@ -134,9 +134,9 @@ public abstract class AbstractFlowFileServerProtocol implements ServerProtocol {
     }
 
     protected void checkPortStatus(final Peer peer, String portId) throws HandshakeException {
-        Port receivedPort = rootGroup.getInputPort(portId);
+        Port receivedPort = rootGroup.findInputPort(portId);
         if (receivedPort == null) {
-            receivedPort = rootGroup.getOutputPort(portId);
+            receivedPort = rootGroup.findOutputPort(portId);
         }
         if (receivedPort == null) {
             logger.debug("Responding with ResponseCode UNKNOWN_PORT for identifier {}", portId);
