@@ -22,6 +22,7 @@ import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.exception.ValidationException;
 import org.apache.nifi.groups.ProcessGroup;
+import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.util.Tuple;
 import org.apache.nifi.web.NiFiCoreException;
@@ -74,10 +75,11 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
 
         // determine if this is the root group
         Port port;
-        if (group.getParent() == null || portDTO.isAllowRemoteAccess()) {
-            port = flowController.getFlowManager().createRemoteInputPort(portDTO.getId(), portDTO.getName());
+        if (group.getParent() == null) {
+            port = flowController.getFlowManager().createRootGroupInputPort(portDTO.getId(), portDTO.getName());
         } else {
             port = flowController.getFlowManager().createLocalInputPort(portDTO.getId(), portDTO.getName());
+            flowController.getFlowManager().setRemoteAccessibility(port, Boolean.TRUE.equals(portDTO.isAllowRemoteAccess()));
         }
 
         // ensure we can perform the update before we add the port to the flow
@@ -254,13 +256,13 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
             }
         }
 
-        if (inputPort instanceof RootGroupPort) {
-            final RootGroupPort rootPort = (RootGroupPort) inputPort;
+        if (inputPort.isAllowRemoteAccess()) {
+            final PublicPort publicPort = inputPort.getPublicPort();
             if (isNotNull(portDTO.getGroupAccessControl())) {
-                rootPort.setGroupAccessControl(portDTO.getGroupAccessControl());
+                publicPort.setGroupAccessControl(portDTO.getGroupAccessControl());
             }
             if (isNotNull(portDTO.getUserAccessControl())) {
-                rootPort.setUserAccessControl(portDTO.getUserAccessControl());
+                publicPort.setUserAccessControl(portDTO.getUserAccessControl());
             }
         }
 

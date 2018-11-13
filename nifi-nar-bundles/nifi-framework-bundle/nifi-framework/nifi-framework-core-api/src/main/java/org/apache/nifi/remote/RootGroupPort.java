@@ -20,8 +20,4 @@ import org.apache.nifi.connectable.Port;
 
 public interface RootGroupPort extends Port {
 
-    @Override
-    default boolean allowRemoteAccess() {
-        return true;
-    }
 }

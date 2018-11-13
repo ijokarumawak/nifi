@@ -220,7 +220,7 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
             @Override
             public AuthorizationResult checkAuthorization(NiFiUser user) {
                 // perform the authorization of the user by using the underlying component, ensures consistent authorization with raw s2s
-                final PortAuthorizationResult authorizationResult = ((RootGroupPort) inputPort).checkUserAuthorization(user);
+                final PortAuthorizationResult authorizationResult = inputPort.getPublicPort().checkUserAuthorization(user);
                 if (authorizationResult.isAuthorized()) {
                     return AuthorizationResult.approved();
                 } else {
@@ -248,7 +248,7 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
             @Override
             public AuthorizationResult checkAuthorization(NiFiUser user) {
                 // perform the authorization of the user by using the underlying component, ensures consistent authorization with raw s2s
-                final PortAuthorizationResult authorizationResult = ((RootGroupPort) outputPort).checkUserAuthorization(user);
+                final PortAuthorizationResult authorizationResult = outputPort.getPublicPort().checkUserAuthorization(user);
                 if (authorizationResult.isAuthorized()) {
                     return AuthorizationResult.approved();
                 } else {

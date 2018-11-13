@@ -28,6 +28,7 @@ import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.io.InputStreamCallback;
 import org.apache.nifi.remote.Peer;
 import org.apache.nifi.remote.PortAuthorizationResult;
+import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.remote.cluster.NodeInformant;
 import org.apache.nifi.remote.codec.FlowFileCodec;
@@ -148,7 +149,7 @@ public abstract class AbstractFlowFileServerProtocol implements ServerProtocol {
         }
 
         this.port = (RootGroupPort) receivedPort;
-        final PortAuthorizationResult portAuthResult = this.port.checkUserAuthorization(peer.getCommunicationsSession().getUserDn());
+        final PortAuthorizationResult portAuthResult = this.port.getPublicPort().checkUserAuthorization(peer.getCommunicationsSession().getUserDn());
         if (!portAuthResult.isAuthorized()) {
             logger.debug("Responding with ResponseCode UNAUTHORIZED: ", portAuthResult.getExplanation());
             throw new HandshakeException(ResponseCode.UNAUTHORIZED, portAuthResult.getExplanation());
@@ -178,8 +179,8 @@ public abstract class AbstractFlowFileServerProtocol implements ServerProtocol {
     }
 
     @Override
-    public RootGroupPort getPort() {
-        return port;
+    public PublicPort getPort() {
+        return port.getPublicPort();
     }
 
     @Override

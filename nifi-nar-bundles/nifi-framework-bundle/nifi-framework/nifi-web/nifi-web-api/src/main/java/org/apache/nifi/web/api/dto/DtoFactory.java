@@ -147,6 +147,7 @@ import org.apache.nifi.registry.flow.mapping.InstantiatedVersionedRemoteGroupPor
 import org.apache.nifi.registry.flow.mapping.InstantiatedVersionedRemoteProcessGroup;
 import org.apache.nifi.registry.variable.VariableRegistryUpdateRequest;
 import org.apache.nifi.registry.variable.VariableRegistryUpdateStep;
+import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.remote.RemoteGroupPort;
 import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.reporting.Bulletin;
@@ -1332,13 +1333,13 @@ public final class DtoFactory {
         dto.setType(port.getConnectableType().name());
         dto.setVersionedComponentId(port.getVersionedComponentId().orElse(null));
 
-        // if this port is on the root group, determine if its actually connected to another nifi
-        if (port instanceof RootGroupPort) {
-            final RootGroupPort rootGroupPort = (RootGroupPort) port;
+        // if this port is remotely accessible, determine if its actually connected to another nifi
+        if (port.isAllowRemoteAccess()) {
+            final PublicPort publicPort = port.getPublicPort();
             dto.setAllowRemoteAccess(true);
-            dto.setTransmitting(rootGroupPort.isTransmitting());
-            dto.setGroupAccessControl(rootGroupPort.getGroupAccessControl());
-            dto.setUserAccessControl(rootGroupPort.getUserAccessControl());
+            dto.setTransmitting(publicPort.isTransmitting());
+            dto.setGroupAccessControl(publicPort.getGroupAccessControl());
+            dto.setUserAccessControl(publicPort.getUserAccessControl());
         }
 
         final Collection<ValidationResult> validationErrors = port.getValidationErrors();

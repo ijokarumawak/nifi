@@ -31,8 +31,8 @@ public interface Port extends Connectable {
      */
     void onSchedulingStart();
 
-    default boolean allowRemoteAccess() {
-        return false;
+    default boolean isAllowRemoteAccess() {
+        return getPublicPort() != null;
     }
 
     default PublicPort getPublicPort() {

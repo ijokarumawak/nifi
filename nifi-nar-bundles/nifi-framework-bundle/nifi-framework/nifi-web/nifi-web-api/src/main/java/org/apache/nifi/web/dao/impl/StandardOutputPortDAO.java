@@ -22,7 +22,7 @@ import org.apache.nifi.controller.FlowController;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.exception.ValidationException;
 import org.apache.nifi.groups.ProcessGroup;
-import org.apache.nifi.remote.RootGroupPort;
+import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.web.NiFiCoreException;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.dto.PortDTO;
@@ -70,7 +70,7 @@ public class StandardOutputPortDAO extends ComponentDAO implements PortDAO {
         // determine if this is the root group
         Port port;
         if (group.getParent() == null) {
-            port = flowController.getFlowManager().createRemoteOutputPort(portDTO.getId(), portDTO.getName());
+            port = flowController.getFlowManager().createRootGroupOutputPort(portDTO.getId(), portDTO.getName());
         } else {
             port = flowController.getFlowManager().createLocalOutputPort(portDTO.getId(), portDTO.getName());
         }
@@ -206,13 +206,13 @@ public class StandardOutputPortDAO extends ComponentDAO implements PortDAO {
             }
         }
 
-        if (outputPort instanceof RootGroupPort) {
-            final RootGroupPort rootPort = (RootGroupPort) outputPort;
+        if (outputPort.isAllowRemoteAccess()) {
+            final PublicPort publicPort = outputPort.getPublicPort();
             if (isNotNull(portDTO.getGroupAccessControl())) {
-                rootPort.setGroupAccessControl(portDTO.getGroupAccessControl());
+                publicPort.setGroupAccessControl(portDTO.getGroupAccessControl());
             }
             if (isNotNull(portDTO.getUserAccessControl())) {
-                rootPort.setUserAccessControl(portDTO.getUserAccessControl());
+                publicPort.setUserAccessControl(portDTO.getUserAccessControl());
             }
         }
 

@@ -16,7 +16,6 @@
  */
 package org.apache.nifi.remote;
 
-import org.apache.nifi.authorization.Authorizer;
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.controller.AbstractPort;
@@ -28,9 +27,7 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessSessionFactory;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.apache.nifi.reporting.BulletinRepository;
 import org.apache.nifi.scheduling.SchedulingStrategy;
-import org.apache.nifi.util.NiFiProperties;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,19 +36,15 @@ import java.util.Set;
 
 public class StandardRootGroupPort extends AbstractPort implements RootGroupPort {
 
-    private final PublicPort publicPort;
     private final Set<Relationship> relationships;
 
     public StandardRootGroupPort(final String id, final String name, final ProcessGroup processGroup,
-            final TransferDirection direction, final ConnectableType type, final Authorizer authorizer,
-            final BulletinRepository bulletinRepository, final ProcessScheduler scheduler, final boolean secure,
-            final NiFiProperties nifiProperties) {
+            final TransferDirection direction, final ConnectableType type, final ProcessScheduler scheduler) {
         super(id, name, processGroup, type, scheduler);
 
         setScheduldingPeriod(MINIMUM_SCHEDULING_NANOS + " nanos");
         setYieldPeriod(nifiProperties.getBoredYieldDuration());
 
-        publicPort = new StandardPublicPort(this, direction, authorizer, bulletinRepository, scheduler, secure, nifiProperties);
         relationships = direction == TransferDirection.RECEIVE ? Collections.singleton(AbstractPort.PORT_RELATIONSHIP) : Collections.emptySet();
     }
 
@@ -125,8 +118,4 @@ public class StandardRootGroupPort extends AbstractPort implements RootGroupPort
         return "RootGroupPort";
     }
 
-    @Override
-    public PublicPort getPublicPort() {
-        return publicPort;
-    }
 }

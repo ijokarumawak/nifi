@@ -427,10 +427,10 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addTextElement(element, "comments", port.getComments());
         addTextElement(element, "scheduledState", scheduledStateLookup.getScheduledState(port).name());
         addTextElement(element, "maxConcurrentTasks", String.valueOf(port.getMaxConcurrentTasks()));
-        for (final String user : port.getUserAccessControl()) {
+        for (final String user : port.getPublicPort().getUserAccessControl()) {
             addTextElement(element, "userAccessControl", user);
         }
-        for (final String group : port.getGroupAccessControl()) {
+        for (final String group : port.getPublicPort().getGroupAccessControl()) {
             addTextElement(element, "groupAccessControl", group);
         }
 
