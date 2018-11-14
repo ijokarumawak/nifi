@@ -3088,7 +3088,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
      * authorized for the transfer. This method is only invoked when obtaining the site to site
      * details so the entire chain isn't necessary.
      */
-    private boolean isUserAuthorized(final NiFiUser user, final RootGroupPort port) {
+    private boolean isUserAuthorized(final NiFiUser user, final Port port) {
         final boolean isSiteToSiteSecure = Boolean.TRUE.equals(properties.isSiteToSiteSecure());
 
         // if site to site is not secure, allow all users
@@ -3128,8 +3128,8 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         // serialize the input ports this NiFi has access to
         final Set<PortDTO> inputPortDtos = new LinkedHashSet<>();
-        final Set<RootGroupPort> inputPorts = controllerFacade.getInputPorts();
-        for (final RootGroupPort inputPort : inputPorts) {
+        final Set<Port> inputPorts = controllerFacade.getInputPorts();
+        for (final Port inputPort : inputPorts) {
             if (isUserAuthorized(user, inputPort)) {
                 final PortDTO dto = new PortDTO();
                 dto.setId(inputPort.getIdentifier());

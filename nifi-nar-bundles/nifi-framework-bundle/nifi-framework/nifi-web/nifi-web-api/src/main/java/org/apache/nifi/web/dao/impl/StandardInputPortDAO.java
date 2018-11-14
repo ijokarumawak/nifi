@@ -189,8 +189,8 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
 
     private Tuple<Boolean, Boolean> analyzePortTypeChange(final Port port, final PortDTO portDTO) {
         // handle Port type change.
-        final boolean isPublicPort = port instanceof RootGroupPort;
-        final boolean isRootGroup = port.getProcessGroup().getParent() == null;
+        final boolean isPublicPort = port.isAllowRemoteAccess();
+        final boolean isRootGroup = port.getProcessGroup() == null || port.getProcessGroup().getParent() == null;
         final boolean willAllowRemoteAccess = portDTO.isAllowRemoteAccess() != null ? portDTO.isAllowRemoteAccess() : isPublicPort;
         final boolean willBePublicPort = (willAllowRemoteAccess || isRootGroup);
         return new Tuple<>(isPublicPort, willBePublicPort);
@@ -219,9 +219,7 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
 
         if (localToPublic || publicToLocal) {
             // recreate the port instance.
-
-            processGroup.removeInputPort(inputPort);
-            inputPort = createPort(processGroup.getIdentifier(), portDTO);
+            flowController.getFlowManager().setRemoteAccessibility(inputPort, localToPublic);
         }
 
         // handle state transition

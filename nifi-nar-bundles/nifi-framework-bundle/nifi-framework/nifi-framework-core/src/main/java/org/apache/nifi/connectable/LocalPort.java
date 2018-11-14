@@ -44,7 +44,6 @@ public class LocalPort extends AbstractPort {
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
     private final Lock writeLock = rwLock.writeLock();
-    private PublicPort publicPort;
 
     public LocalPort(final String id, final String name, final ProcessGroup processGroup, final ConnectableType type, final ProcessScheduler scheduler) {
         super(id, name, processGroup, type, scheduler);

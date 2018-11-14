@@ -260,17 +260,17 @@ public class ControllerFacade implements Authorizable {
      *
      * @return input ports
      */
-    public Set<RootGroupPort> getInputPorts() {
-        final Set<RootGroupPort> inputPorts = new HashSet<>();
+    public Set<Port> getInputPorts() {
+        final Set<Port> inputPorts = new HashSet<>();
         ProcessGroup rootGroup = getRootGroup();
         getInputPorts(inputPorts, rootGroup);
         return inputPorts;
     }
 
-    private void getInputPorts(final Set<RootGroupPort> inputPorts, final ProcessGroup group) {
+    private void getInputPorts(final Set<Port> inputPorts, final ProcessGroup group) {
         for (final Port port : group.getInputPorts()) {
-            if (port instanceof RootGroupPort) {
-                inputPorts.add((RootGroupPort) port);
+            if (port.isAllowRemoteAccess()) {
+                inputPorts.add(port);
             }
         }
         group.getProcessGroups().forEach(childGroup -> getInputPorts(inputPorts, childGroup));
