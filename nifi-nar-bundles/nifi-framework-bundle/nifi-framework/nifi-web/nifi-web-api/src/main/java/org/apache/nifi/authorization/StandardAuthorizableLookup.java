@@ -206,8 +206,8 @@ class StandardAuthorizableLookup implements AuthorizableLookup {
     public RootGroupPortAuthorizable getRootGroupInputPort(String id) {
         final Port inputPort = inputPortDAO.getPort(id);
 
-        if (!(inputPort instanceof RootGroupPort)) {
-            throw new IllegalArgumentException(String.format("The specified id '%s' does not represent an input port in the root group.", id));
+        if (!inputPort.isAllowRemoteAccess()) {
+            throw new IllegalArgumentException(String.format("The specified id '%s' does not represent a input port which can be accessed remotely.", id));
         }
 
         final DataTransferAuthorizable baseAuthorizable = new DataTransferAuthorizable(inputPort);

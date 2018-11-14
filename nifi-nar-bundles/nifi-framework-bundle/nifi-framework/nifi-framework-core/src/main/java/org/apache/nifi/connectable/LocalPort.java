@@ -23,7 +23,9 @@ import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
+import org.apache.nifi.processor.ProcessSessionFactory;
 import org.apache.nifi.processor.Relationship;
+import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 
@@ -66,6 +68,29 @@ public class LocalPort extends AbstractPort {
             validationErrors.add(error);
         }
         return validationErrors;
+    }
+
+    @Override
+    public void onTrigger(final ProcessContext context, final ProcessSessionFactory sessionFactory) {
+        if (publicPort != null) {
+            // If this is a publicly accessible port, then process remote transactions first.
+            publicPort.onTrigger(context, sessionFactory);
+        }
+
+        // Then process local connections.
+        final ProcessSession session = sessionFactory.createSession();
+
+        try {
+            onTrigger(context, session);
+            session.commit();
+        } catch (final ProcessException e) {
+            session.rollback();
+            throw e;
+        } catch (final Throwable t) {
+            session.rollback();
+            throw new RuntimeException(t);
+        }
+
     }
 
     @Override
