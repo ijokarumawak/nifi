@@ -293,6 +293,7 @@ public class StandardFlowSnippet implements FlowSnippet {
                 }
             } else {
                 inputPort = flowManager.createLocalInputPort(portDTO.getId(), portDTO.getName());
+                flowManager.setRemoteAccessibility(inputPort, Boolean.TRUE.equals(portDTO.isAllowRemoteAccess()));
             }
 
             if (!topLevel) {
