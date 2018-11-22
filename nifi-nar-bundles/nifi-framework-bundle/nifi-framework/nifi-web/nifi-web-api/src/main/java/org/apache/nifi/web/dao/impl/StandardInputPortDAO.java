@@ -23,8 +23,6 @@ import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.exception.ValidationException;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.remote.PublicPort;
-import org.apache.nifi.remote.RootGroupPort;
-import org.apache.nifi.util.Tuple;
 import org.apache.nifi.web.NiFiCoreException;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.dto.PortDTO;
@@ -117,7 +115,7 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
         verifyUpdate(inputPort, portDTO, analyzePortTypeChange(inputPort, portDTO));
     }
 
-    private void verifyUpdate(final Port inputPort, final PortDTO portDTO, final Tuple<Boolean, Boolean> portTypeChange) {
+    private void verifyUpdate(final Port inputPort, final PortDTO portDTO, final PortTypeChange portTypeChange) {
         if (isNotNull(portDTO.getState())) {
             final ScheduledState purposedScheduledState = ScheduledState.valueOf(portDTO.getState());
 
@@ -153,7 +151,7 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
                 portDTO.getComments())) {
 
             // validate the request
-            final List<String> requestValidation = validateProposedConfiguration(portDTO);
+            final List<String> requestValidation = validateProposedConfiguration(inputPort, portDTO, portTypeChange);
 
             // ensure there was no validation errors
             if (!requestValidation.isEmpty()) {
@@ -164,17 +162,10 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
             inputPort.verifyCanUpdate();
         }
 
-        final boolean localToPublic = isLocalToPublic(portTypeChange);
-        final boolean publicToLocal = isPublicToLocal(portTypeChange);
-        if (localToPublic) {
-            // TODO: verify connections are empty
-            if (inputPort.hasIncomingConnection()) {
-            }
-        }
-
     }
 
-    private List<String> validateProposedConfiguration(PortDTO portDTO) {
+    private List<String> validateProposedConfiguration(final Port port, final PortDTO portDTO,
+                                                       final PortTypeChange portTypeChange) {
         List<String> validationErrors = new ArrayList<>();
 
         if (isNotNull(portDTO.getName()) && portDTO.getName().trim().isEmpty()) {
@@ -184,38 +175,57 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
             validationErrors.add("Concurrent tasks must be a positive integer.");
         }
 
+        if (portTypeChange.willBePublic) {
+            final String portName = isNotNull(portDTO.getName()) ? portDTO.getName() : port.getName();
+            if (flowController.getFlowManager().getPublicInputPorts().stream()
+                    .anyMatch(p -> portName.equals(p.getName()))) {
+                throw new IllegalStateException("Public port name should be unique in the entire flow.");
+            }
+        }
+
+
         return validationErrors;
     }
 
-    private Tuple<Boolean, Boolean> analyzePortTypeChange(final Port port, final PortDTO portDTO) {
+    private class PortTypeChange {
+        private final boolean isPublic;
+        private final boolean willBePublic;
+
+        private PortTypeChange(boolean isPublic, boolean willBePublic) {
+            this.isPublic = isPublic;
+            this.willBePublic = willBePublic;
+        }
+
+        private boolean isLocalToPublic() {
+            return !isPublic && willBePublic;
+        }
+
+        private boolean isPublicToLocal() {
+            return isPublic && !willBePublic;
+        }
+    }
+
+    private PortTypeChange analyzePortTypeChange(final Port port, final PortDTO portDTO) {
         // handle Port type change.
         final boolean isPublicPort = port.isAllowRemoteAccess();
         final boolean isRootGroup = port.getProcessGroup() == null || port.getProcessGroup().getParent() == null;
         final boolean willAllowRemoteAccess = portDTO.isAllowRemoteAccess() != null ? portDTO.isAllowRemoteAccess() : isPublicPort;
         final boolean willBePublicPort = (willAllowRemoteAccess || isRootGroup);
-        return new Tuple<>(isPublicPort, willBePublicPort);
-    }
-
-    private boolean isLocalToPublic(final Tuple<Boolean, Boolean> portTypes) {
-        return !portTypes.getKey() && portTypes.getValue();
-    }
-
-    private boolean isPublicToLocal(final Tuple<Boolean, Boolean> portTypes) {
-        return portTypes.getKey() && !portTypes.getValue();
+        return new PortTypeChange(isPublicPort, willBePublicPort);
     }
 
     @Override
     public Port updatePort(PortDTO portDTO) {
         Port inputPort = locatePort(portDTO.getId());
         final ProcessGroup processGroup = inputPort.getProcessGroup();
-        final Tuple<Boolean, Boolean> portTypeChange = analyzePortTypeChange(inputPort, portDTO);
+        final PortTypeChange portTypeChange = analyzePortTypeChange(inputPort, portDTO);
 
         // ensure we can do this update
         verifyUpdate(inputPort, portDTO, portTypeChange);
 
         // handle Port type change.
-        final boolean localToPublic = isLocalToPublic(portTypeChange);
-        final boolean publicToLocal = isPublicToLocal(portTypeChange);
+        final boolean localToPublic = portTypeChange.isLocalToPublic();
+        final boolean publicToLocal = portTypeChange.isPublicToLocal();
 
         if (localToPublic || publicToLocal) {
             // recreate the port instance.

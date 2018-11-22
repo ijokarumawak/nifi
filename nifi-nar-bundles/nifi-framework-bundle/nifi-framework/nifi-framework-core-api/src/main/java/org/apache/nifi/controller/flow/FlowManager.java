@@ -61,6 +61,13 @@ public interface FlowManager {
      */
     Port createRootGroupOutputPort(String id, String name);
 
+    /**
+     * Gets the all remotely accessible InputPorts in any ProcessGroups.
+     *
+     * @return input ports
+     */
+    Set<Port> getPublicInputPorts();
+
     void setRemoteAccessibility(final Port port, final boolean allowRemoteAccess);
 
     /**

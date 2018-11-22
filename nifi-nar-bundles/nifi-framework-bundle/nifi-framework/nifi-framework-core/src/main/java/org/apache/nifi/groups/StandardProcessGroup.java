@@ -497,13 +497,24 @@ public final class StandardProcessGroup implements ProcessGroup {
             if (!(port instanceof RootGroupPort)) {
                 throw new IllegalArgumentException("Cannot add Input Port of type " + port.getClass().getName() + " to the Root Group");
             }
+        } else if (!(port instanceof LocalPort)) {
+            throw new IllegalArgumentException("Cannot add Input Port of type " + port.getClass().getName() + " to a non-root group");
         }
 
         writeLock.lock();
         try {
+            // Unique port check within the same group.
             if (inputPorts.containsKey(requireNonNull(port).getIdentifier())
                     || getInputPortByName(port.getName()) != null) {
                 throw new IllegalStateException("The input port name or identifier is not available to be added.");
+            }
+
+            // Unique public port check among all groups.
+            if (port.isAllowRemoteAccess()) {
+                if (flowManager.getPublicInputPorts().stream()
+                        .anyMatch(p -> port.getIdentifier().equals(p.getIdentifier()) || port.getName().equals(p.getName()))) {
+                    throw new IllegalStateException("Public port name and identifier should be unique in the entire flow.");
+                }
             }
 
             port.setProcessGroup(this);

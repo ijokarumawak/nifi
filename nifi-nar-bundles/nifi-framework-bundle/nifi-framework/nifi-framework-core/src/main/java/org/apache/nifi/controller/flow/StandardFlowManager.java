@@ -157,6 +157,28 @@ public class StandardFlowManager implements FlowManager {
         return new StandardPublicPort(port, direction, authorizer, bulletinRepository, processScheduler, isSiteToSiteSecure, nifiProperties);
     }
 
+    /**
+     * Gets the input ports on the root group, and all remotely accessible ports in the child process groups.
+     *
+     * @return input ports
+     */
+    public Set<Port> getPublicInputPorts() {
+        final Set<Port> inputPorts = new HashSet<>();
+        ProcessGroup rootGroup = getRootGroup();
+        getPublicInputPorts(inputPorts, rootGroup);
+        return inputPorts;
+    }
+
+    private void getPublicInputPorts(final Set<Port> inputPorts, final ProcessGroup group) {
+        for (final Port port : group.getInputPorts()) {
+            if (port.isAllowRemoteAccess()) {
+                inputPorts.add(port);
+            }
+        }
+        group.getProcessGroups().forEach(childGroup -> getPublicInputPorts(inputPorts, childGroup));
+    }
+
+
     public RemoteProcessGroup createRemoteProcessGroup(final String id, final String uris) {
         return new StandardRemoteProcessGroup(requireNonNull(id), uris, null, processScheduler, bulletinRepository, sslContext, nifiProperties);
     }
