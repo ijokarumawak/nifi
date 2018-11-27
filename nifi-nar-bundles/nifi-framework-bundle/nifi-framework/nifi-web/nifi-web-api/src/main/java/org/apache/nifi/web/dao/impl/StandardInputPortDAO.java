@@ -177,8 +177,9 @@ public class StandardInputPortDAO extends ComponentDAO implements PortDAO {
 
         if (portTypeChange.willBePublic) {
             final String portName = isNotNull(portDTO.getName()) ? portDTO.getName() : port.getName();
+            // If there is any port with the same name, but different identifier, throw an error.
             if (flowController.getFlowManager().getPublicInputPorts().stream()
-                    .anyMatch(p -> portName.equals(p.getName()))) {
+                    .anyMatch(p -> portName.equals(p.getName()) && !port.getIdentifier().equals(p.getIdentifier()))) {
                 throw new IllegalStateException("Public port name should be unique in the entire flow.");
             }
         }

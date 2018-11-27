@@ -62,6 +62,10 @@
         height: 75
     };
 
+    var dimensions = function (d) {
+        return d.component.allowRemoteAccess === true ? remotePortDimensions : portDimensions;
+    }
+
     // ----------------------------
     // ports currently on the graph
     // ----------------------------
@@ -150,30 +154,31 @@
                 'stroke-width': 0
             });
 
-        var offset = 0;
-
         // conditionally render the remote banner
-        if (nfCanvasUtils.getParentGroupId() === null) {
-            offset = OFFSET_VALUE;
-
-            // port remote banner
-            port.append('rect')
-                .attrs({
-                    'class': 'remote-banner',
-                    'width': function (d) {
-                        return d.dimensions.width;
-                    },
-                    'height': offset,
-                    'fill': '#e3e8eb'
-                });
+        var offset = function (d) {
+            return d.component.allowRemoteAccess === true ? OFFSET_VALUE : 0;
         }
+
+        // port remote banner
+        port.append('rect')
+            .attrs({
+                'class': 'remote-banner',
+                'width': remotePortDimensions.width,
+                'height': offset,
+                'fill': '#e3e8eb'
+            })
+            .classed('hidden', function (d) {
+                return d.component.allowRemoteAccess !== true;
+            });
 
         // port icon
         port.append('text')
             .attrs({
                 'class': 'port-icon',
                 'x': 10,
-                'y': 38 + offset
+                'y': function (d) {
+                     return 38 + offset(d);
+                 }
             })
             .text(function (d) {
                 if (d.portType === 'INPUT_PORT') {
@@ -187,7 +192,9 @@
         port.append('text')
             .attrs({
                 'x': 70,
-                'y': 25 + offset,
+                'y': function (d) {
+                     return 25 + offset(d);
+                 },
                 'width': 95,
                 'height': 30,
                 'class': 'port-name'
@@ -233,53 +240,57 @@
             // update the component behavior as appropriate
             nfCanvasUtils.editable(port, nfConnectable, nfDraggable);
 
+            var offset = function (d) {
+                return d.component.allowRemoteAccess === true ? OFFSET_VALUE : 0;
+            }
+
             // if this process group is visible, render everything
             if (port.classed('visible')) {
                 if (details.empty()) {
                     details = port.append('g').attr('class', 'port-details');
 
-                    var offset = 0;
-                    if (nfCanvasUtils.getParentGroupId() === null) {
-                        offset = OFFSET_VALUE;
+                    // port transmitting icon
+                    details.append('text')
+                        .attrs({
+                            'class': 'port-transmission-icon',
+                            'x': 10,
+                            'y': 18
+                        })
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
 
-                        // port transmitting icon
-                        details.append('text')
-                            .attrs({
-                                'class': 'port-transmission-icon',
-                                'x': 10,
-                                'y': 18
-                            });
+                    // bulletin background
+                    details.append('rect')
+                        .attrs({
+                            'class': 'bulletin-background',
+                            'x': remotePortDimensions.width - OFFSET_VALUE,
+                            'width': OFFSET_VALUE,
+                            'height': OFFSET_VALUE
+                        })
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
 
-                        // bulletin background
-                        details.append('rect')
-                            .attrs({
-                                'class': 'bulletin-background',
-                                'x': function (d) {
-                                    return portData.dimensions.width - offset;
-                                },
-                                'width': offset,
-                                'height': offset
-                            });
-
-                        // bulletin icon
-                        details.append('text')
-                            .attrs({
-                                'class': 'bulletin-icon',
-                                'x': function (d) {
-                                    return portData.dimensions.width - 18;
-                                },
-                                'y': 18
-                            })
-                            .text('\uf24a');
-                    }
+                    // bulletin icon
+                    details.append('text')
+                        .attrs({
+                            'class': 'bulletin-icon',
+                            'x': remotePortDimensions.width - 18,
+                            'y': 18
+                        })
+                        .text('\uf24a')
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
 
                     // run status icon
                     details.append('text')
                         .attrs({
                             'class': 'run-status-icon',
                             'x': 50,
-                            'y': function () {
-                                return 25 + offset;
+                            'y': function (d) {
+                                return 25 + offset(d);
                             }
                         });
 
@@ -302,7 +313,9 @@
                     details.append('text')
                         .attrs({
                             'class': 'active-thread-count-icon',
-                            'y': 43 + offset
+                            'y': function (d) {
+                                return 43 + offset(d);
+                            }
                         })
                         .text('\ue83f');
 
@@ -310,11 +323,42 @@
                     details.append('text')
                         .attrs({
                             'class': 'active-thread-count',
-                            'y': 43 + offset
+                            'y': function (d) {
+                                return 43 + offset(d);
+                            }
                         });
                 }
 
                 if (portData.permissions.canRead) {
+
+                    // Update the remote port banner, these are needed when remote access is changed.
+                    port.select('rect.remote-banner')
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
+
+                    port.select('text.port-icon')
+                        .attrs({
+                            'y': function (d) {
+                                 return 38 + offset(d);
+                             }
+                        });
+
+                    details.select('text.port-transmission-icon')
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
+
+                    details.select('rect.bulletin-background')
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
+
+                    details.select('rect.bulletin-icon')
+                        .classed('hidden', function (d) {
+                            return d.component.allowRemoteAccess !== true;
+                        });
+
                     // update the port name
                     port.select('text.port-name')
                         .each(function (d) {
@@ -332,9 +376,13 @@
                             } else {
                                 nfCanvasUtils.multilineEllipsis(portName, 2, name);
                             }
+                        }).attrs({
+                            'y': function (d) {
+                                 return 25 + offset(d);
+                             }
                         }).append('title').text(function (d) {
-                        return d.component.name;
-                    });
+                            return d.component.name;
+                        });
 
                     // update the port comments
                     port.select('path.component-comments')
@@ -615,12 +663,6 @@
                 selectAll = nfCommon.isDefinedAndNotNull(options.selectAll) ? options.selectAll : selectAll;
             }
 
-            // determine the appropriate dimensions for this port
-            var dimensions = portDimensions;
-            if (nfCanvasUtils.getParentGroupId() === null) {
-                dimensions = remotePortDimensions;
-            }
-
             // get the current time
             var now = new Date().getTime();
 
@@ -630,7 +672,7 @@
                 // add the port
                 portMap.set(portEntity.id, $.extend({
                     type: 'Port',
-                    dimensions: dimensions,
+                    dimensions: dimensions(portEntity),
                     status: {
                         activeThreadCount: 0
                     }
@@ -672,12 +714,6 @@
                 overrideRevisionCheck = nfCommon.isDefinedAndNotNull(options.overrideRevisionCheck) ? options.overrideRevisionCheck : overrideRevisionCheck;
             }
 
-            // determine the appropriate dimensions for this port
-            var dimensions = portDimensions;
-            if (nfCanvasUtils.getParentGroupId() === null) {
-                dimensions = remotePortDimensions;
-            }
-
             var set = function (proposedPortEntity) {
                 var currentPortEntity = portMap.get(proposedPortEntity.id);
 
@@ -686,7 +722,7 @@
                     // add the port
                     portMap.set(proposedPortEntity.id, $.extend({
                         type: 'Port',
-                        dimensions: dimensions,
+                        dimensions: dimensions(proposedPortEntity),
                         status: {
                             activeThreadCount: 0
                         }

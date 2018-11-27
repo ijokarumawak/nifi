@@ -206,7 +206,7 @@
                 }
 
                 // show concurrent tasks for root groups only
-                if (nfCanvasUtils.getParentGroupId() === null) {
+                if (selectionData.allowRemoteAccess === true) {
                     $('#port-concurrent-task-container').show();
                 } else {
                     $('#port-concurrent-task-container').hide();
