@@ -23,6 +23,33 @@
 
 
     <artifactId>nifi-enrich-processors</artifactId>
+
+    <profiles>
+        <profile>
+            <!-- This profile, activating when compiling on Java versions above 1.8, provides configuration changes to
+            allow NiFi to be compiled on those JDKs. -->
+            <id>jigsaw</id>
+            <activation>
+                <jdk>(1.8,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <compilerArgs>
+                                <!-- TODO needs run-time testing -->
+                                <compilerArg>--add-modules=jdk.naming.dns</compilerArg>
+                                <compilerArg>--add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED</compilerArg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.nifi</groupId>

@@ -17,6 +17,7 @@
 
 package org.apache.nifi.schema.access;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.nifi.serialization.SimpleRecordSchema;
 import org.apache.nifi.serialization.record.RecordField;
 import org.apache.nifi.serialization.record.RecordFieldType;

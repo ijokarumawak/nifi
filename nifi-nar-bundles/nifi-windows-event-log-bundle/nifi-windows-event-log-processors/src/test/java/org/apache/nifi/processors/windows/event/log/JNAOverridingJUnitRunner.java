@@ -27,7 +27,6 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.net.URLClassLoader;
 import java.util.Map;
 
 /**
@@ -40,7 +39,7 @@ public abstract class JNAOverridingJUnitRunner extends Runner {
 
     public JNAOverridingJUnitRunner(Class<?> klass) throws InitializationError {
         Map<String, Map<String, String>> classOverrideMap = getClassOverrideMap();
-        ClassLoader jnaMockClassloader = new URLClassLoader(((URLClassLoader) JNAOverridingJUnitRunner.class.getClassLoader()).getURLs(), null) {
+        ClassLoader jnaMockClassloader = new ClassLoader(JNAOverridingJUnitRunner.class.getClassLoader()) {
             @Override
             protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
                 Map<String, String> classOverrides = classOverrideMap.get(name);
