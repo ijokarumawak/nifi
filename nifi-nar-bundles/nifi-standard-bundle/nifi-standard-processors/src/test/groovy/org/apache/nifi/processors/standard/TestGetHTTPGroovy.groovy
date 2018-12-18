@@ -70,7 +70,7 @@ class TestGetHTTPGroovy extends GroovyTestCase {
     private static final List DEFAULT_PROTOCOLS = [TLSv1, TLSv1_1, TLSv1_2]
 
     private static final String TLSv1_1_CIPHER_SUITE = "TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA"
-    private static final SSLContext sslcontext = SSLContext.getInstance("TLS")
+    private static final SSLContext sslcontext = SSLContext.default
     private static final SSLEngine sslengine = sslcontext.createSSLEngine()
     private static
 //    final List DEFAULT_CIPHER_SUITES = new SSLEngineImpl(new SSLContextImpl.TLSContext()).supportedCipherSuites as List

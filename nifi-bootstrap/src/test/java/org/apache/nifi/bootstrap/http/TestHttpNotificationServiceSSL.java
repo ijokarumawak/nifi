@@ -70,7 +70,7 @@ public class TestHttpNotificationServiceSSL extends  TestHttpNotificationService
                 "passwordpassword".toCharArray(),
                 "JKS",
                 SslContextFactory.ClientAuth.REQUIRED,
-                "TLS");
+                "TLSv1.2");
 
         mockWebServer.useHttps(sslContext.getSocketFactory(), false);
 
