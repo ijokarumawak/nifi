@@ -46,6 +46,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -93,9 +95,12 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
         final List<Thread> threads = new ArrayList<Thread>();
 
         final ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.configureBlocking(true);
+        serverSocketChannel.configureBlocking(false);
         serverSocketChannel.bind(new InetSocketAddress(socketPort));
         stopped.set(false);
+
+        final Selector selector = Selector.open();
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         final Thread listenerThread = new Thread(new Runnable() {
             private int threadCount = 0;
@@ -115,18 +120,20 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                     }
 
                     LOG.trace("Accepting Connection...");
-                    Socket acceptedSocket = null;
+                    SocketChannel socketChannel = null;
                     try {
-                        serverSocketChannel.configureBlocking(false);
-                        final ServerSocket serverSocket = serverSocketChannel.socket();
-                        serverSocket.setSoTimeout(2000);
-                        while (!stopped.get() && acceptedSocket == null) {
-                            try {
-                                acceptedSocket = serverSocket.accept();
-                            } catch (final SocketTimeoutException ste) {
-                                continue;
+                        if (selector.select() == 0) {
+                            continue;
+                        }
+
+                        for (SelectionKey key : selector.selectedKeys()) {
+                            if (key.isAcceptable())  {
+                                while(!stopped.get() && socketChannel == null) {
+                                    socketChannel = serverSocketChannel.accept();
+                                }
                             }
                         }
+
                     } catch (final IOException e) {
                         LOG.error("RemoteSiteListener Unable to accept connection due to {}", e.toString());
                         if (LOG.isDebugEnabled()) {
@@ -140,13 +147,13 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                         break;
                     }
 
-                    final Socket socket = acceptedSocket;
-                    final SocketChannel socketChannel = socket.getChannel();
+                    final SocketChannel clientSocketChannel = socketChannel;
+                    final Socket clientSocket = clientSocketChannel.socket();
                     final Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             LOG.debug("{} Determining URL of connection", this);
-                            final InetAddress inetAddress = socket.getInetAddress();
+                            final InetAddress inetAddress = clientSocket.getInetAddress();
                             String clientHostName = inetAddress.getHostName();
                             final int slashIndex = clientHostName.indexOf("/");
                             if (slashIndex == 0) {
@@ -155,7 +162,7 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                                 clientHostName = clientHostName.substring(0, slashIndex);
                             }
 
-                            final int clientPort = socket.getPort();
+                            final int clientPort = clientSocket.getPort();
                             final String peerUri = "nifi://" + clientHostName + ":" + clientPort;
                             LOG.debug("{} Connection URL is {}", this, peerUri);
 
@@ -163,7 +170,7 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                             final String dn;
                             try {
                                 if (secure) {
-                                    final SSLSocketChannel sslSocketChannel = new SSLSocketChannel(sslContext, socketChannel, false);
+                                    final SSLSocketChannel sslSocketChannel = new SSLSocketChannel(sslContext, clientSocketChannel, false);
                                     LOG.trace("Channel is secure; connecting...");
                                     sslSocketChannel.connect();
                                     LOG.trace("Channel connected");
@@ -173,22 +180,22 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                                     commsSession.setUserDn(dn);
                                 } else {
                                     LOG.trace("{} Channel is not secure", this);
-                                    commsSession = new SocketChannelCommunicationsSession(socketChannel);
+                                    commsSession = new SocketChannelCommunicationsSession(clientSocketChannel);
                                     dn = null;
                                 }
                             } catch (final Exception e) {
-                                LOG.error("RemoteSiteListener Unable to accept connection from {} due to {}", socket, e.toString());
+                                LOG.error("RemoteSiteListener Unable to accept connection from {} due to {}", clientSocket, e.toString());
                                 if (LOG.isDebugEnabled()) {
                                     LOG.error("", e);
                                 }
                                 try {
-                                    socketChannel.close();
+                                    clientSocketChannel.close();
                                 } catch (IOException swallow) {
                                 }
                                 return;
                             }
 
-                            LOG.info("Received connection from {}, User DN: {}", socket.getInetAddress(), dn);
+                            LOG.info("Received connection from {}, User DN: {}", clientSocket.getInetAddress(), dn);
 
                             final InputStream socketIn;
                             final OutputStream socketOut;
