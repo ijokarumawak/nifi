@@ -24,7 +24,7 @@ import org.apache.nifi.remote.exception.BadRequestException;
 import org.apache.nifi.remote.exception.HandshakeException;
 import org.apache.nifi.remote.exception.NotAuthorizedException;
 import org.apache.nifi.remote.exception.RequestExpiredException;
-import org.apache.nifi.remote.io.socket.SocketChannelCommunicationsSession;
+import org.apache.nifi.remote.io.socket.SocketCommunicationsSession;
 import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannel;
 import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannelCommunicationsSession;
 import org.apache.nifi.remote.protocol.CommunicationsSession;
@@ -169,6 +169,8 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                         final String dn;
                         try {
                             if (secure) {
+                                // TODO: implement non-NIO
+                                final SocketChannel socketChannel = null;
                                 final SSLSocketChannel sslSocketChannel = new SSLSocketChannel(sslContext, socketChannel, false);
                                 LOG.trace("Channel is secure; connecting...");
                                 sslSocketChannel.connect();
@@ -179,17 +181,13 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                                 commsSession.setUserDn(dn);
                             } else {
                                 LOG.trace("{} Channel is not secure", this);
-                                commsSession = new SocketChannelCommunicationsSession(socketChannel);
+                                commsSession = new SocketCommunicationsSession(socket);
                                 dn = null;
                             }
                         } catch (final Exception e) {
                             LOG.error("RemoteSiteListener Unable to accept connection from {} due to {}", socket, e.toString());
                             if (LOG.isDebugEnabled()) {
                                 LOG.error("", e);
-                            }
-                            try {
-                                socketChannel.close();
-                            } catch (IOException swallow) {
                             }
                             return;
                         }
