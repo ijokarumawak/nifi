@@ -30,11 +30,15 @@ import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannelCommunicationsSessio
 import org.apache.nifi.remote.protocol.CommunicationsSession;
 import org.apache.nifi.remote.protocol.RequestType;
 import org.apache.nifi.remote.protocol.ServerProtocol;
+import org.apache.nifi.security.util.CertificateUtils;
 import org.apache.nifi.util.NiFiProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSocket;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -46,10 +50,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.channels.SocketChannel;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -97,22 +103,22 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
 
             @Override
             public void run() {
-                while (!stopped.get()) {
 
-                    final ProcessGroup processGroup = rootGroup.get();
-                    // If nodeInformant is not null, we are in clustered mode, which means that we don't care about
-                    // the processGroup.
-                    if ((nodeInformant == null) && (processGroup == null || (processGroup.getInputPorts().isEmpty() && processGroup.getOutputPorts().isEmpty()))) {
-                        try {
-                            Thread.sleep(2000L);
-                        } catch (final Exception e) {
+                try (final ServerSocket serverSocket = createServerSocket()) {
+                    serverSocket.setSoTimeout(2000);
+
+                    while (!stopped.get()) {
+
+                        final ProcessGroup processGroup = rootGroup.get();
+                        // If nodeInformant is not null, we are in clustered mode, which means that we don't care about
+                        // the processGroup.
+                        if ((nodeInformant == null) && (processGroup == null || (processGroup.getInputPorts().isEmpty() && processGroup.getOutputPorts().isEmpty()))) {
+                            try {
+                                Thread.sleep(2000L);
+                            } catch (final Exception e) {
+                            }
+                            continue;
                         }
-                        continue;
-                    }
-
-                    try (final ServerSocket serverSocket = new ServerSocket(socketPort)) {
-                        serverSocket.setSoTimeout(2000);
-
 
                         final Socket acceptedSocket = acceptConnection(serverSocket);
 
@@ -131,14 +137,15 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                         threads.add(thread);
                         threads.removeIf(t -> !t.isAlive());
 
-                    } catch (final IOException e) {
-                        LOG.error("Unable to open server socket due to {}", e.toString());
-                        if (LOG.isDebugEnabled()) {
-                            LOG.error("", e);
-                        }
                     }
 
+                } catch (final IOException e) {
+                    LOG.error("Unable to open server socket due to {}", e.toString());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.error("", e);
+                    }
                 }
+
 
                 for(Thread thread : threads) {
                     if(thread != null) {
@@ -169,18 +176,14 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
                         final String dn;
                         try {
                             if (secure) {
-                                // TODO: implement non-NIO
-                                final SocketChannel socketChannel = null;
-                                final SSLSocketChannel sslSocketChannel = new SSLSocketChannel(sslContext, socketChannel, false);
-                                LOG.trace("Channel is secure; connecting...");
-                                sslSocketChannel.connect();
-                                LOG.trace("Channel connected");
+                                LOG.trace("{} Connection is secure", this);
+                                dn = CertificateUtils.extractPeerDNFromSSLSocket(socket);
 
-                                commsSession = new SSLSocketChannelCommunicationsSession(sslSocketChannel);
-                                dn = sslSocketChannel.getDn();
+                                commsSession = new SocketCommunicationsSession(socket);
                                 commsSession.setUserDn(dn);
+
                             } else {
-                                LOG.trace("{} Channel is not secure", this);
+                                LOG.trace("{} Connection is not secure", this);
                                 commsSession = new SocketCommunicationsSession(socket);
                                 dn = null;
                             }
@@ -319,6 +322,16 @@ public class SocketRemoteSiteListener implements RemoteSiteListener {
 
         listenerThread.setName("Site-to-Site Listener");
         listenerThread.start();
+    }
+
+    private ServerSocket createServerSocket() throws IOException {
+        if (sslContext != null) {
+            final ServerSocket serverSocket = sslContext.getServerSocketFactory().createServerSocket(socketPort);
+            ((SSLServerSocket) serverSocket).setNeedClientAuth(true);
+            return serverSocket;
+        } else {
+            return new ServerSocket(socketPort);
+        }
     }
 
     private Socket acceptConnection(ServerSocket serverSocket) {

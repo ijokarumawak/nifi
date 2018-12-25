@@ -34,6 +34,7 @@ import org.apache.nifi.remote.exception.TransmissionDisabledException;
 import org.apache.nifi.remote.exception.UnknownPortException;
 import org.apache.nifi.remote.exception.UnreachableClusterException;
 import org.apache.nifi.remote.io.socket.SocketChannelCommunicationsSession;
+import org.apache.nifi.remote.io.socket.SocketCommunicationsSession;
 import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannel;
 import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannelCommunicationsSession;
 import org.apache.nifi.remote.protocol.CommunicationsSession;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.channels.SocketChannel;
@@ -451,16 +453,17 @@ public class EndpointConnectionPool implements PeerStatusProvider {
                             + " because it requires Secure Site-to-Site communications, but this instance is not configured for secure communications");
                 }
 
-                final SSLSocketChannel socketChannel = new SSLSocketChannel(sslContext, hostname, port, localAddress, true);
-                socketChannel.connect();
+                // TODO: Use specified local address.
+                final Socket socket = sslContext.getSocketFactory().createSocket(hostname, port);
+                commsSession = new SocketCommunicationsSession(socket);
 
-                commsSession = new SSLSocketChannelCommunicationsSession(socketChannel);
-
-                try {
-                    commsSession.setUserDn(socketChannel.getDn());
-                } catch (final CertificateException ex) {
-                    throw new IOException(ex);
-                }
+                commsSession.setUserDn("nifi0");
+//                try {
+//                    // TODO: Get DN.
+//                    commsSession.setUserDn("nifi0");
+//                } catch (final CertificateException ex) {
+//                    throw new IOException(ex);
+//                }
             } else {
                 final SocketChannel socketChannel = SocketChannel.open();
                 if (localAddress != null) {

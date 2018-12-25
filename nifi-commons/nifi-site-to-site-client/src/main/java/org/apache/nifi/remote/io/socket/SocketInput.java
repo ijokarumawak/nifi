@@ -79,8 +79,9 @@ public class SocketInput implements CommunicationsInput {
 
     @Override
     public void consume() throws IOException {
-        while (interruptableIn.read() > -1) {
-
-        }
+        // TODO: Do we need this??
+//        while (interruptableIn.read() > -1) {
+//
+//        }
     }
 }
