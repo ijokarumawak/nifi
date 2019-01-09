@@ -35,10 +35,9 @@ import org.apache.nifi.remote.exception.UnknownPortException;
 import org.apache.nifi.remote.exception.UnreachableClusterException;
 import org.apache.nifi.remote.io.socket.SocketChannelCommunicationsSession;
 import org.apache.nifi.remote.io.socket.SocketCommunicationsSession;
-import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannel;
-import org.apache.nifi.remote.io.socket.ssl.SSLSocketChannelCommunicationsSession;
 import org.apache.nifi.remote.protocol.CommunicationsSession;
 import org.apache.nifi.remote.protocol.socket.SocketClientProtocol;
+import org.apache.nifi.security.util.CertificateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -453,17 +452,15 @@ public class EndpointConnectionPool implements PeerStatusProvider {
                             + " because it requires Secure Site-to-Site communications, but this instance is not configured for secure communications");
                 }
 
-                // TODO: Use specified local address.
                 final Socket socket = sslContext.getSocketFactory().createSocket(hostname, port);
                 commsSession = new SocketCommunicationsSession(socket);
 
-                commsSession.setUserDn("nifi0");
-//                try {
-//                    // TODO: Get DN.
-//                    commsSession.setUserDn("nifi0");
-//                } catch (final CertificateException ex) {
-//                    throw new IOException(ex);
-//                }
+                try {
+                    final String dn = CertificateUtils.extractPeerDNFromSSLSocket(socket);
+                    commsSession.setUserDn(dn);
+                } catch (final CertificateException ex) {
+                    throw new IOException(ex);
+                }
             } else {
                 final SocketChannel socketChannel = SocketChannel.open();
                 if (localAddress != null) {

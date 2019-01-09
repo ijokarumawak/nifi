@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.channels.SocketChannel;
 
 public class SocketInput implements CommunicationsInput {
 
@@ -79,9 +78,14 @@ public class SocketInput implements CommunicationsInput {
 
     @Override
     public void consume() throws IOException {
-        // TODO: Do we need this??
-//        while (interruptableIn.read() > -1) {
-//
-//        }
+        if (interruptableIn == null || !isDataAvailable()) {
+            return;
+        }
+
+        final byte[] b = new byte[4096];
+        int bytesRead;
+        do {
+            bytesRead = interruptableIn.read(b);
+        } while (bytesRead > 0);
     }
 }
