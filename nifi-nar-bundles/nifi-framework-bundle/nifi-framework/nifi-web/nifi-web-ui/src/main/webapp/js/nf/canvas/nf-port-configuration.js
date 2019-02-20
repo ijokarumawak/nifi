@@ -206,7 +206,7 @@
                 }
 
                 // show concurrent tasks for root groups only
-                if (selectionData.allowRemoteAccess === true) {
+                if (selectionData.component.allowRemoteAccess === true) {
                     $('#port-concurrent-task-container').show();
                 } else {
                     $('#port-concurrent-task-container').hide();
