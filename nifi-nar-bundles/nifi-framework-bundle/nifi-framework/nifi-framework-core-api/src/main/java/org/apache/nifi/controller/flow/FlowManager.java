@@ -68,6 +68,13 @@ public interface FlowManager {
      */
     Set<Port> getPublicInputPorts();
 
+    /**
+     * Gets the all remotely accessible OutputPorts in any ProcessGroups.
+     *
+     * @return output ports
+     */
+    Set<Port> getPublicOutputPorts();
+
     void setRemoteAccessibility(final Port port, final boolean allowRemoteAccess);
 
     /**

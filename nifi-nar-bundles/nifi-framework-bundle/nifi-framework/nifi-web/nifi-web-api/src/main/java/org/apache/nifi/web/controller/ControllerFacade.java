@@ -264,6 +264,14 @@ public class ControllerFacade implements Authorizable {
     }
 
     /**
+     * Gets the remotely accessible OutputPorts in any ProcessGroup.
+     * @return output ports
+     */
+    public Set<Port> getPublicOutputPorts() {
+        return flowController.getFlowManager().getPublicOutputPorts();
+    }
+
+    /**
      * Gets the output ports on the root group.
      *
      * @return output ports

@@ -53,7 +53,15 @@ public class LocalPort extends AbstractPort {
 
     @Override
     public boolean isValid() {
-        return !getConnections(Relationship.ANONYMOUS).isEmpty();
+        switch (getConnectableType()) {
+            case INPUT_PORT:
+                // Require outgoing connection to pass the received FlowFiles.
+                return !getConnections(Relationship.ANONYMOUS).isEmpty();
+            case OUTPUT_PORT:
+                // If remotely accessible, local outgoing connection is not required.
+                return publicPort != null || !getConnections(Relationship.ANONYMOUS).isEmpty();
+        }
+        return false;
     }
 
     @Override
@@ -77,7 +85,11 @@ public class LocalPort extends AbstractPort {
             publicPort.onTrigger(context, sessionFactory);
         }
 
-        // Then process local connections.
+        // Then process local connections if it has any local outgoing connection.
+        if (getConnections(Relationship.ANONYMOUS).isEmpty()) {
+            return;
+        }
+
         final ProcessSession session = sessionFactory.createSession();
 
         try {
@@ -194,7 +206,7 @@ public class LocalPort extends AbstractPort {
 
     @Override
     public boolean isTriggerWhenEmpty() {
-        return false;
+        return publicPort != null;
     }
 
     @Override

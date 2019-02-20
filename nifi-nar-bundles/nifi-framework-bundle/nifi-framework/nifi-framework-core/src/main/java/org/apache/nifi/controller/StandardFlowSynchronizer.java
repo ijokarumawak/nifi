@@ -1321,6 +1321,7 @@ public class StandardFlowSynchronizer implements FlowSynchronizer {
                 port = flowManager.createRootGroupOutputPort(portDTO.getId(), portDTO.getName());
             } else {
                 port = flowManager.createLocalOutputPort(portDTO.getId(), portDTO.getName());
+                flowManager.setRemoteAccessibility(port, Boolean.TRUE.equals(portDTO.isAllowRemoteAccess()));
             }
 
             port.setVersionedComponentId(portDTO.getVersionedComponentId());

@@ -87,6 +87,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -158,24 +159,37 @@ public class StandardFlowManager implements FlowManager {
     }
 
     /**
-     * Gets the input ports on the root group, and all remotely accessible ports in the child process groups.
+     * Gets all remotely accessible ports in any process group.
      *
      * @return input ports
      */
     public Set<Port> getPublicInputPorts() {
-        final Set<Port> inputPorts = new HashSet<>();
-        ProcessGroup rootGroup = getRootGroup();
-        getPublicInputPorts(inputPorts, rootGroup);
-        return inputPorts;
+        return getPublicPorts(ProcessGroup::getInputPorts);
     }
 
-    private void getPublicInputPorts(final Set<Port> inputPorts, final ProcessGroup group) {
-        for (final Port port : group.getInputPorts()) {
+    /**
+     * Gets all remotely accessible ports in any process group.
+     *
+     * @return output ports
+     */
+    public Set<Port> getPublicOutputPorts() {
+        return getPublicPorts(ProcessGroup::getOutputPorts);
+    }
+
+    private Set<Port> getPublicPorts(final Function<ProcessGroup, Set<Port>> getPorts) {
+        final Set<Port> publicPorts = new HashSet<>();
+        ProcessGroup rootGroup = getRootGroup();
+        getPublicPorts(publicPorts, rootGroup, getPorts);
+        return publicPorts;
+    }
+
+    private void getPublicPorts(final Set<Port> publicPorts, final ProcessGroup group, final Function<ProcessGroup, Set<Port>> getPorts) {
+        for (final Port port : getPorts.apply(group)) {
             if (port.isAllowRemoteAccess()) {
-                inputPorts.add(port);
+                publicPorts.add(port);
             }
         }
-        group.getProcessGroups().forEach(childGroup -> getPublicInputPorts(inputPorts, childGroup));
+        group.getProcessGroups().forEach(childGroup -> getPublicPorts(publicPorts, childGroup, getPorts));
     }
 
 

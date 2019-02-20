@@ -597,9 +597,18 @@ public final class StandardProcessGroup implements ProcessGroup {
 
         writeLock.lock();
         try {
+            // Unique port check within the same group.
             if (outputPorts.containsKey(requireNonNull(port).getIdentifier())
-                    || getOutputPortByName(port.getName()) != null) {
-                throw new IllegalStateException("Output Port with given identifier or name is not available");
+                || getOutputPortByName(port.getName()) != null) {
+                throw new IllegalStateException("The output port name or identifier is not available to be added.");
+            }
+
+            // Unique public port check among all groups.
+            if (port.isAllowRemoteAccess()) {
+                if (flowManager.getPublicOutputPorts().stream()
+                    .anyMatch(p -> port.getIdentifier().equals(p.getIdentifier()) || port.getName().equals(p.getName()))) {
+                    throw new IllegalStateException("Public port name and identifier should be unique in the entire flow.");
+                }
             }
 
             port.setProcessGroup(this);

@@ -3128,8 +3128,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         // serialize the input ports this NiFi has access to
         final Set<PortDTO> inputPortDtos = new LinkedHashSet<>();
-        final Set<Port> inputPorts = controllerFacade.getPublicInputPorts();
-        for (final Port inputPort : inputPorts) {
+        for (final Port inputPort : controllerFacade.getPublicInputPorts()) {
             if (isUserAuthorized(user, inputPort)) {
                 final PortDTO dto = new PortDTO();
                 dto.setId(inputPort.getIdentifier());
@@ -3142,7 +3141,7 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
 
         // serialize the output ports this NiFi has access to
         final Set<PortDTO> outputPortDtos = new LinkedHashSet<>();
-        for (final RootGroupPort outputPort : controllerFacade.getOutputPorts()) {
+        for (final Port outputPort : controllerFacade.getPublicOutputPorts()) {
             if (isUserAuthorized(user, outputPort)) {
                 final PortDTO dto = new PortDTO();
                 dto.setId(outputPort.getIdentifier());
