@@ -65,9 +65,7 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
     private PortTypeChange analyzePortTypeChange(final Port port, final PortDTO portDTO) {
         // handle Port type change.
         final boolean isPublicPort = port.isAllowRemoteAccess();
-        final boolean isRootGroup = port.getProcessGroup() == null || port.getProcessGroup().getParent() == null;
-        final boolean willAllowRemoteAccess = portDTO.isAllowRemoteAccess() != null ? portDTO.isAllowRemoteAccess() : isPublicPort;
-        final boolean willBePublicPort = (willAllowRemoteAccess || isRootGroup);
+        final boolean willBePublicPort = portDTO.isAllowRemoteAccess() != null ? portDTO.isAllowRemoteAccess() : isPublicPort;
         return new PortTypeChange(isPublicPort, willBePublicPort);
     }
 
@@ -142,7 +140,7 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
             // If there is any port with the same name, but different identifier, throw an error.
             if (getPublicPorts().stream()
                 .anyMatch(p -> portName.equals(p.getName()) && !port.getIdentifier().equals(p.getIdentifier()))) {
-                throw new IllegalStateException("Public port name should be unique throughput the flow.");
+                throw new IllegalStateException("Public port name should be unique throughout the flow.");
             }
         }
 

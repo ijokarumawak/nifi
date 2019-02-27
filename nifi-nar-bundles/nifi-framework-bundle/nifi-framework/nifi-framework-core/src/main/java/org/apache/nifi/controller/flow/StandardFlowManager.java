@@ -130,7 +130,7 @@ public class StandardFlowManager implements FlowManager {
         id = requireNonNull(id).intern();
         name = requireNonNull(name).intern();
         verifyPortIdDoesNotExist(id);
-        final StandardRootGroupPort port = new StandardRootGroupPort(id, name, null, TransferDirection.RECEIVE, ConnectableType.INPUT_PORT, processScheduler);
+        final StandardRootGroupPort port = new StandardRootGroupPort(id, name, null, TransferDirection.RECEIVE, ConnectableType.INPUT_PORT, processScheduler, nifiProperties);
         setRemoteAccessibility(port, true);
         return port;
     }
@@ -139,13 +139,13 @@ public class StandardFlowManager implements FlowManager {
         id = requireNonNull(id).intern();
         name = requireNonNull(name).intern();
         verifyPortIdDoesNotExist(id);
-        final StandardRootGroupPort port = new StandardRootGroupPort(id, name, null, TransferDirection.SEND, ConnectableType.OUTPUT_PORT, processScheduler);
+        final StandardRootGroupPort port = new StandardRootGroupPort(id, name, null, TransferDirection.SEND, ConnectableType.OUTPUT_PORT, processScheduler, nifiProperties);
         setRemoteAccessibility(port, true);
         return port;
     }
 
     public void setRemoteAccessibility(final Port port, final boolean allowRemoteAccess) {
-        // TODO: any validation?
+        // TODO: any validation? If the port is a root group port, can not be a local port.
         final TransferDirection direction = ConnectableType.INPUT_PORT == port.getConnectableType() ? TransferDirection.RECEIVE : TransferDirection.SEND;
         if (allowRemoteAccess) {
             ((AbstractPort) port).setPublicPort(createPublicPort(port, direction));

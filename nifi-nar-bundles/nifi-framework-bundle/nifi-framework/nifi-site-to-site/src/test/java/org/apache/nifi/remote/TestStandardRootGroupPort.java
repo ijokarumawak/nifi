@@ -57,7 +57,7 @@ public class TestStandardRootGroupPort {
         doReturn("process-group-id").when(processGroup).getIdentifier();
 
         final StandardRootGroupPort rootGroupPort = new StandardRootGroupPort("id", "name", processGroup,
-                TransferDirection.SEND, ConnectableType.INPUT_PORT, processScheduler);
+                TransferDirection.SEND, ConnectableType.INPUT_PORT, processScheduler, nifiProperties);
 
         final StandardPublicPort publicPort = new StandardPublicPort(rootGroupPort, TransferDirection.SEND, authorizer, bulletinRepository, processScheduler, true, nifiProperties);
         rootGroupPort.setPublicPort(publicPort);

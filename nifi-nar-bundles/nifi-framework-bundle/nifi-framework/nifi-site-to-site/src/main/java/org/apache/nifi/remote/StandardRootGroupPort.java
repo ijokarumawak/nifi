@@ -28,6 +28,7 @@ import org.apache.nifi.processor.ProcessSessionFactory;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.scheduling.SchedulingStrategy;
+import org.apache.nifi.util.NiFiProperties;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +40,9 @@ public class StandardRootGroupPort extends AbstractPort implements RootGroupPort
     private final Set<Relationship> relationships;
 
     public StandardRootGroupPort(final String id, final String name, final ProcessGroup processGroup,
-            final TransferDirection direction, final ConnectableType type, final ProcessScheduler scheduler) {
+            final TransferDirection direction, final ConnectableType type, final ProcessScheduler scheduler,
+            final NiFiProperties nifiProperties) {
+
         super(id, name, processGroup, type, scheduler);
 
         setScheduldingPeriod(MINIMUM_SCHEDULING_NANOS + " nanos");
