@@ -65,6 +65,7 @@ import org.apache.nifi.registry.VariableRegistry;
 import org.apache.nifi.registry.variable.MutableVariableRegistry;
 import org.apache.nifi.remote.PublicPort;
 import org.apache.nifi.remote.RemoteGroupPort;
+import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.remote.StandardPublicPort;
 import org.apache.nifi.remote.StandardRemoteProcessGroup;
 import org.apache.nifi.remote.StandardRootGroupPort;
@@ -145,7 +146,9 @@ public class StandardFlowManager implements FlowManager {
     }
 
     public void setRemoteAccessibility(final Port port, final boolean allowRemoteAccess) {
-        // TODO: any validation? If the port is a root group port, can not be a local port.
+        if (port instanceof RootGroupPort && !allowRemoteAccess) {
+            throw new IllegalArgumentException("Cannot disable remote access for RootGroupPorts.");
+        }
         final TransferDirection direction = ConnectableType.INPUT_PORT == port.getConnectableType() ? TransferDirection.RECEIVE : TransferDirection.SEND;
         if (allowRemoteAccess) {
             ((AbstractPort) port).setPublicPort(createPublicPort(port, direction));

@@ -45,7 +45,6 @@ import org.apache.nifi.controller.service.ControllerServiceReference;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.nar.ExtensionManager;
 import org.apache.nifi.remote.PortAuthorizationResult;
-import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.util.BundleUtils;
 import org.apache.nifi.web.ResourceNotFoundException;
 import org.apache.nifi.web.api.dto.BundleDTO;

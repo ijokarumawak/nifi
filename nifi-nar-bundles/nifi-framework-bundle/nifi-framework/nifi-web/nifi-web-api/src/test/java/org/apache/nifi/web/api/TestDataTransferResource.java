@@ -21,7 +21,6 @@ import org.apache.nifi.authorization.resource.ResourceType;
 import org.apache.nifi.remote.HttpRemoteSiteListener;
 import org.apache.nifi.remote.Peer;
 import org.apache.nifi.remote.PublicPort;
-import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.remote.VersionNegotiator;
 import org.apache.nifi.remote.exception.HandshakeException;
 import org.apache.nifi.remote.io.http.HttpServerCommunicationsSession;

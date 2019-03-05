@@ -28,7 +28,6 @@ import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.remote.PublicPort;
-import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.authorization.user.NiFiUser;
 import org.apache.nifi.web.api.dto.PortDTO;
 import org.apache.nifi.web.dao.PortDAO;

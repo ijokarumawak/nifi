@@ -43,7 +43,6 @@ import org.apache.nifi.registry.ComponentVariableRegistry;
 import org.apache.nifi.registry.VariableDescriptor;
 import org.apache.nifi.registry.VariableRegistry;
 import org.apache.nifi.remote.PublicPort;
-import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.scheduling.ExecutionNode;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 import org.apache.nifi.search.SearchContext;

@@ -122,7 +122,6 @@ import org.apache.nifi.registry.flow.mapping.InstantiatedVersionedProcessor;
 import org.apache.nifi.registry.flow.mapping.InstantiatedVersionedRemoteGroupPort;
 import org.apache.nifi.registry.flow.mapping.NiFiRegistryFlowMapper;
 import org.apache.nifi.remote.RemoteGroupPort;
-import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.reporting.Bulletin;
 import org.apache.nifi.reporting.BulletinQuery;
 import org.apache.nifi.reporting.BulletinRepository;

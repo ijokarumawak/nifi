@@ -17,7 +17,6 @@
 package org.apache.nifi.remote;
 
 import org.apache.nifi.authorization.user.NiFiUser;
-import org.apache.nifi.connectable.Port;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSessionFactory;
 import org.apache.nifi.remote.exception.BadRequestException;
@@ -27,6 +26,9 @@ import org.apache.nifi.remote.protocol.ServerProtocol;
 
 import java.util.Set;
 
+/**
+ * Represents an input or output port that can receive or transfer data via Site-to-Site protocol.
+ */
 public interface PublicPort {
 
     boolean isTransmitting();

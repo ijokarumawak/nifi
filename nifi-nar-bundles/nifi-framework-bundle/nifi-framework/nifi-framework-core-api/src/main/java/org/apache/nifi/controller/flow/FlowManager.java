@@ -75,6 +75,11 @@ public interface FlowManager {
      */
     Set<Port> getPublicOutputPorts();
 
+    /**
+     * Sets whether the port is remotely accessible via Site-to-Site protocol.
+     * @param port the target Port
+     * @param allowRemoteAccess if the port can be accessed remotely
+     */
     void setRemoteAccessibility(final Port port, final boolean allowRemoteAccess);
 
     /**
