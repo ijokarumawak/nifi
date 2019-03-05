@@ -23,6 +23,7 @@ import org.apache.nifi.controller.ScheduledState;
 import org.apache.nifi.controller.exception.ValidationException;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.remote.PublicPort;
+import org.apache.nifi.remote.RootGroupPort;
 import org.apache.nifi.web.NiFiCoreException;
 import org.apache.nifi.web.api.dto.PortDTO;
 import org.apache.nifi.web.dao.PortDAO;
@@ -106,7 +107,8 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
             portDTO.getGroupAccessControl(),
             portDTO.getConcurrentlySchedulableTaskCount(),
             portDTO.getName(),
-            portDTO.getComments())) {
+            portDTO.getComments(),
+            portDTO.isAllowRemoteAccess())) {
 
             // validate the request
             final List<String> requestValidation = validateProposedConfiguration(port, portDTO, portTypeChange);
@@ -142,6 +144,8 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
                 .anyMatch(p -> portName.equals(p.getName()) && !port.getIdentifier().equals(p.getIdentifier()))) {
                 throw new IllegalStateException("Public port name should be unique throughout the flow.");
             }
+        } else if (port instanceof RootGroupPort) {
+            throw new IllegalStateException("Cannot disable remote access for RootGroupPorts.");
         }
 
         return validationErrors;

@@ -83,13 +83,9 @@
                         var port = {
                             'id': portId,
                             'name': $('#port-name').val(),
-                            'comments': $('#port-comments').val()
+                            'comments': $('#port-comments').val(),
+                            'concurrentlySchedulableTaskCount': $('#port-concurrent-tasks').val()
                         };
-
-                        // include the concurrent tasks if appropriate
-                        if ($('#port-concurrent-task-container').is(':visible')) {
-                            port['concurrentlySchedulableTaskCount'] = $('#port-concurrent-tasks').val();
-                        }
 
                         // mark the port disabled if appropriate
                         if ($('#port-enabled').hasClass('checkbox-unchecked')) {
@@ -203,13 +199,6 @@
                 var portEnableStyle = 'checkbox-checked';
                 if (selectionData.component.state === 'DISABLED') {
                     portEnableStyle = 'checkbox-unchecked';
-                }
-
-                // show concurrent tasks for root groups only
-                if (selectionData.component.allowRemoteAccess === true) {
-                    $('#port-concurrent-task-container').show();
-                } else {
-                    $('#port-concurrent-task-container').hide();
                 }
 
                 // populate the port settings
