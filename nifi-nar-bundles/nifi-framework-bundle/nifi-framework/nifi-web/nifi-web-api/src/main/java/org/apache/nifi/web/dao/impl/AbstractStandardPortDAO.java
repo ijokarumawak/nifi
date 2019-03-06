@@ -135,7 +135,7 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
             validationErrors.add("Concurrent tasks must be a positive integer.");
         }
 
-        // Although StandardProcessGroup.addIn/OutputPort has the same validation,
+        // Although StandardProcessGroup.addIn/OutputPort has the similar validation,
         // this validation is necessary to prevent a port becomes public with an existing port name.
         if (portTypeChange.willBePublic) {
             final String portName = isNotNull(portDTO.getName()) ? portDTO.getName() : port.getName();
@@ -150,6 +150,15 @@ public abstract class AbstractStandardPortDAO extends ComponentDAO implements Po
 
         return validationErrors;
     }
+
+    @Override
+    public void verifyPublicPortUniqueness(final String portId, final String portName) {
+        if (getPublicPorts().stream()
+            .anyMatch(p -> portId.equals(p.getIdentifier()) || portName.equals(p.getName()))) {
+            throw new IllegalStateException("Public port name and identifier should be unique throughout the flow.");
+        }
+    }
+
 
     protected abstract Set<Port> getPublicPorts();
 

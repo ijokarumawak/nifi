@@ -4754,6 +4754,15 @@ public class StandardNiFiServiceFacade implements NiFiServiceFacade {
         };
     }
 
+    @Override
+    public void verifyPublicInputPortUniqueness(final String portId, final String portName) {
+        inputPortDAO.verifyPublicPortUniqueness(portId, portName);
+    }
+
+    @Override
+    public void verifyPublicOutputPortUniqueness(final String portId, final String portName) {
+        outputPortDAO.verifyPublicPortUniqueness(portId, portName);
+    }
 
     /* setters */
     public void setProperties(final NiFiProperties properties) {

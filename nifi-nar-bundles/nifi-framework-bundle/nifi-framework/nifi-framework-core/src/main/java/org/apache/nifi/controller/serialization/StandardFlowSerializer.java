@@ -413,6 +413,7 @@ public class StandardFlowSerializer implements FlowSerializer<Document> {
         addTextElement(element, "comments", port.getComments());
         addTextElement(element, "scheduledState", scheduledStateLookup.getScheduledState(port).name());
         addTextElement(element, "allowRemoteAccess", String.valueOf(port.isAllowRemoteAccess()));
+        addTextElement(element, "maxConcurrentTasks", port.getMaxConcurrentTasks());
 
         parentElement.appendChild(element);
     }

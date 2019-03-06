@@ -284,7 +284,6 @@ public class StandardFlowSnippet implements FlowSnippet {
             final Port inputPort;
             if (group.isRootGroup()) {
                 inputPort = flowManager.createRootGroupInputPort(portDTO.getId(), portDTO.getName());
-                inputPort.setMaxConcurrentTasks(portDTO.getConcurrentlySchedulableTaskCount());
                 if (portDTO.getGroupAccessControl() != null) {
                     inputPort.getPublicPort().setGroupAccessControl(portDTO.getGroupAccessControl());
                 }
@@ -301,6 +300,7 @@ public class StandardFlowSnippet implements FlowSnippet {
             }
             inputPort.setPosition(toPosition(portDTO.getPosition()));
             inputPort.setProcessGroup(group);
+            inputPort.setMaxConcurrentTasks(portDTO.getConcurrentlySchedulableTaskCount());
             inputPort.setComments(portDTO.getComments());
             group.addInputPort(inputPort);
         }
@@ -309,7 +309,6 @@ public class StandardFlowSnippet implements FlowSnippet {
             final Port outputPort;
             if (group.isRootGroup()) {
                 outputPort = flowManager.createRootGroupOutputPort(portDTO.getId(), portDTO.getName());
-                outputPort.setMaxConcurrentTasks(portDTO.getConcurrentlySchedulableTaskCount());
                 if (portDTO.getGroupAccessControl() != null) {
                     outputPort.getPublicPort().setGroupAccessControl(portDTO.getGroupAccessControl());
                 }
@@ -318,6 +317,7 @@ public class StandardFlowSnippet implements FlowSnippet {
                 }
             } else {
                 outputPort = flowManager.createLocalOutputPort(portDTO.getId(), portDTO.getName());
+                flowManager.setRemoteAccessibility(outputPort, Boolean.TRUE.equals(portDTO.isAllowRemoteAccess()));
             }
 
             if (!topLevel) {
@@ -325,6 +325,7 @@ public class StandardFlowSnippet implements FlowSnippet {
             }
             outputPort.setPosition(toPosition(portDTO.getPosition()));
             outputPort.setProcessGroup(group);
+            outputPort.setMaxConcurrentTasks(portDTO.getConcurrentlySchedulableTaskCount());
             outputPort.setComments(portDTO.getComments());
             group.addOutputPort(outputPort);
         }

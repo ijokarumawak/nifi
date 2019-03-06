@@ -3970,6 +3970,7 @@ public final class DtoFactory {
         copy.setGroupAccessControl(copy(original.getGroupAccessControl()));
         copy.setValidationErrors(copy(original.getValidationErrors()));
         copy.setVersionedComponentId(original.getVersionedComponentId());
+        copy.setAllowRemoteAccess(original.isAllowRemoteAccess());
         return copy;
     }
 

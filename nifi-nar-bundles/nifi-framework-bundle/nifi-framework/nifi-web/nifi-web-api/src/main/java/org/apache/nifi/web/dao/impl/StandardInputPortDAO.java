@@ -72,6 +72,11 @@ public class StandardInputPortDAO extends AbstractStandardPortDAO implements Por
             flowController.getFlowManager().setRemoteAccessibility(port, Boolean.TRUE.equals(portDTO.isAllowRemoteAccess()));
         }
 
+        // Unique public port check among all groups.
+        if (port.isAllowRemoteAccess()) {
+            verifyPublicPortUniqueness(port.getIdentifier(), port.getName());
+        }
+
         // ensure we can perform the update before we add the port to the flow
         verifyUpdate(port, portDTO);
 

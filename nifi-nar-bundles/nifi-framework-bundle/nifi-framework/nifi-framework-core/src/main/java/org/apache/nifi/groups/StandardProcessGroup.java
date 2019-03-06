@@ -509,14 +509,6 @@ public final class StandardProcessGroup implements ProcessGroup {
                 throw new IllegalStateException("The input port name or identifier is not available to be added.");
             }
 
-            // Unique public port check among all groups.
-            if (port.isAllowRemoteAccess()) {
-                if (flowManager.getPublicInputPorts().stream()
-                        .anyMatch(p -> port.getIdentifier().equals(p.getIdentifier()) || port.getName().equals(p.getName()))) {
-                    throw new IllegalStateException("Public port name and identifier should be unique in the entire flow.");
-                }
-            }
-
             port.setProcessGroup(this);
             inputPorts.put(requireNonNull(port).getIdentifier(), port);
             flowManager.onInputPortAdded(port);
@@ -601,14 +593,6 @@ public final class StandardProcessGroup implements ProcessGroup {
             if (outputPorts.containsKey(requireNonNull(port).getIdentifier())
                 || getOutputPortByName(port.getName()) != null) {
                 throw new IllegalStateException("The output port name or identifier is not available to be added.");
-            }
-
-            // Unique public port check among all groups.
-            if (port.isAllowRemoteAccess()) {
-                if (flowManager.getPublicOutputPorts().stream()
-                    .anyMatch(p -> port.getIdentifier().equals(p.getIdentifier()) || port.getName().equals(p.getName()))) {
-                    throw new IllegalStateException("Public port name and identifier should be unique in the entire flow.");
-                }
             }
 
             port.setProcessGroup(this);
