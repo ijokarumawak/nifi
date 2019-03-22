@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -3596,14 +3597,14 @@ public final class StandardProcessGroup implements ProcessGroup {
         // Perform the update steps on the input ports of the new process group
         final Map<String, Port> inputPortsByVersionedId = updateProcessGroupPorts(group.getInputPorts(),
                 proposed.getInputPorts(), componentIdSeed, updatedVersionedComponentIds, inputPortIdsRemoved,
-                proposedInputPortNamesByPortId, this::addInputPort, flowManager::onInputPortAdded);
+                proposedInputPortNamesByPortId, flowManager::createLocalInputPort, this::addInputPort, flowManager::onInputPortAdded);
 
 
         // Output Ports (same process as Input Ports above)
         Set<String> outputPortIdsRemoved = new HashSet<>();
         final Map<String, Port> outputPortsByVersionedId = updateProcessGroupPorts(group.getOutputPorts(),
                 proposed.getOutputPorts(), componentIdSeed, updatedVersionedComponentIds, outputPortIdsRemoved,
-                proposedOutputPortNamesByPortId, this::addOutputPort, flowManager::onOutputPortAdded);
+                proposedOutputPortNamesByPortId, flowManager::createLocalOutputPort, this::addOutputPort, flowManager::onOutputPortAdded);
 
 
         // Labels
@@ -3782,13 +3783,17 @@ public final class StandardProcessGroup implements ProcessGroup {
      * @param updatedVersionedComponentIds the set of all versioned component IDs for the desired final state of this process group
      * @param portIdsRemoved the set which will contain all removed port IDs when the method returns
      * @param proposedPortNamesByPortId the map of proposed port names indexed by port ID
-     * @param portAddFunction the method which adds an (input|output) port to the flow
+     * @param createPort the function which create an (input|output) port from a generated uuid and a name
+     * @param addPort the function which adds the created port to the flow
      * @param portAddHandler the method which handles the "add port" event (usually from the {@link FlowController})
      * @return a map of all existing ports indexed by their port ID
      */
-    private Map<String, Port> updateProcessGroupPorts(Set<Port> ports, Set<VersionedPort>
-            proposedPorts, String componentIdSeed, Set<String> updatedVersionedComponentIds, Set<String> portIdsRemoved, Map<String, String> proposedPortNamesByPortId,
-                                                      PortAdder<ProcessGroup, VersionedPort, String, Port> portAddFunction, Consumer<Port> portAddHandler) {
+    private Map<String, Port> updateProcessGroupPorts(Set<Port> ports, Set<VersionedPort> proposedPorts,
+                                                      String componentIdSeed, Set<String> updatedVersionedComponentIds, Set<String> portIdsRemoved,
+                                                      Map<String, String> proposedPortNamesByPortId,
+                                                      BiFunction<String, String, Port> createPort,
+                                                      Consumer<Port> addPort,
+                                                      Consumer<Port> portAddHandler) {
         // Build a map of the existing ports keyed off their IDs
         final Map<String, Port> portsByVersionedId = ports.stream()
                 .collect(Collectors.toMap(component -> component.getVersionedComponentId().orElse(component.getIdentifier()), Function.identity()));
@@ -3808,7 +3813,7 @@ public final class StandardProcessGroup implements ProcessGroup {
             if (port == null) {
                 final String temporaryName = generateTemporaryPortName(proposedPort);
                 // Add the port to the group
-                final Port added = portAddFunction.add(this, proposedPort, componentIdSeed, temporaryName);
+                final Port added = addProposedPort(proposedPort, componentIdSeed, temporaryName, createPort, addPort);
                 proposedPortNamesByPortId.put(added.getIdentifier(), proposedPort.getName());
                 // Call the flow manager's event handler
                 portAddHandler.accept(added);
@@ -4196,21 +4201,12 @@ public final class StandardProcessGroup implements ProcessGroup {
         port.setPosition(new Position(proposed.getPosition().getX(), proposed.getPosition().getY()));
     }
 
-    private Port addInputPort(final ProcessGroup destination, final VersionedPort proposed, final String componentIdSeed, final String temporaryName) {
+    private Port addProposedPort(final VersionedPort proposed, final String componentIdSeed, final String temporaryName, final BiFunction<String, String, Port> createPort, Consumer<Port> addPort) {
         final String name = temporaryName != null ? temporaryName : proposed.getName();
-        final Port port = flowManager.createLocalInputPort(generateUuid(proposed.getIdentifier(), destination.getIdentifier(), componentIdSeed), name);
+        final String uuid = generateUuid(proposed.getIdentifier(), getIdentifier(), componentIdSeed);
+        final Port port = createPort.apply(uuid, name);
         port.setVersionedComponentId(proposed.getIdentifier());
-        destination.addInputPort(port);
-        updatePort(port, proposed, temporaryName);
-
-        return port;
-    }
-
-    private Port addOutputPort(final ProcessGroup destination, final VersionedPort proposed, final String componentIdSeed, final String temporaryName) {
-        final String name = temporaryName != null ? temporaryName : proposed.getName();
-        final Port port = flowManager.createLocalOutputPort(generateUuid(proposed.getIdentifier(), destination.getIdentifier(), componentIdSeed), name);
-        port.setVersionedComponentId(proposed.getIdentifier());
-        destination.addOutputPort(port);
+        addPort.accept(port);
         updatePort(port, proposed, temporaryName);
 
         return port;
@@ -4752,9 +4748,4 @@ public final class StandardProcessGroup implements ProcessGroup {
             }
         }
     }
-}
-
-@FunctionalInterface
-interface PortAdder<ProcessGroup, VersionedPort, String, Port> {
-    Port add(ProcessGroup group, VersionedPort proposedPort, String componentIdSeed, String temporaryName);
 }
