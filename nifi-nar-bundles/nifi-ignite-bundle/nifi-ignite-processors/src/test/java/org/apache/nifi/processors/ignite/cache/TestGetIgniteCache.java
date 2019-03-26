@@ -34,8 +34,11 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("Need to upgrade to a version of Ignite that supports Java 11")
+// TODO java11 Need to upgrade to a version of Ignite that supports Java 11
 public class TestGetIgniteCache {
 
     private static final String CACHE_NAME = "testCache";

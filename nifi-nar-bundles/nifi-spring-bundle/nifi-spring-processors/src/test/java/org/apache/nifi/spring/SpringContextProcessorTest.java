@@ -61,7 +61,8 @@ public class SpringContextProcessorTest {
     @Test
     public void validateOneWayFromNiFi() throws Exception {
         TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "toSpringOnly.xml");
+        // FIXME: java11 Need to specify relative explicit location of application context, due to SpringContextProcessor.isConfigResolvable behaving differently between run-/test-time
+        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "./target/test-classes/toSpringOnly.xml");
         runner.setProperty(SpringContextProcessor.CTX_LIB_PATH, ".");
         runner.setProperty(SpringContextProcessor.RECEIVE_TIMEOUT, "100 millis");
         runner.assertValid();
@@ -83,7 +84,8 @@ public class SpringContextProcessorTest {
     @Test
     public void validateOneWayFromSpring() throws Exception {
         TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "fromSpringOnly.xml");
+        // FIXME: java11 Need to specify relative explicit location of application context, due to SpringContextProcessor.isConfigResolvable behaving differently between run-/test-time
+        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "./target/test-classes/fromSpringOnly.xml");
         runner.setProperty(SpringContextProcessor.CTX_LIB_PATH, ".");
         runner.assertValid();
 
@@ -106,7 +108,8 @@ public class SpringContextProcessorTest {
     @Test
     public void validateBiDirectional() throws Exception {
         TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "requestReply.xml");
+        // FIXME: java11 Need to specify relative explicit location of application context, due to SpringContextProcessor.isConfigResolvable behaving differently between run-/test-time
+        runner.setProperty(SpringContextProcessor.CTX_CONFIG_PATH, "./target/test-classes/requestReply.xml");
         runner.setProperty(SpringContextProcessor.CTX_LIB_PATH, ".");
         runner.setProperty(SpringContextProcessor.RECEIVE_TIMEOUT, "100 millis");
         runner.assertValid();
