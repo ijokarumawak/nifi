@@ -83,7 +83,8 @@ class ScriptedReportingTaskGroovyTest {
     @Test
     void testProvenanceGroovyScript() {
         def uuid = "10000000-0000-0000-0000-000000000000"
-        def attributes = ['abc': 'xyz', 'xyz': 'abc', 'filename': "file-$uuid", 'uuid': uuid]
+        // FIXME java11 removed usage of GString, causes issue in java code due to not being able to cast GString to String
+        def attributes = ['abc': 'xyz', 'xyz': 'abc', 'filename': 'file-' + uuid, 'uuid': uuid]
         def prevAttrs = ['filename': '1234.xyz']
 
         def flowFile = new MockFlowFile(3L)
