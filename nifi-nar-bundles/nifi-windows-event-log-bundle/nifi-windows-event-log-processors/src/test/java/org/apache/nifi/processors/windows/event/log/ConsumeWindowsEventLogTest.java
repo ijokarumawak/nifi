@@ -56,15 +56,12 @@ import org.apache.nifi.util.ReflectionUtils;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 @RunWith(JNAJUnitRunner.class)
-@Ignore("Not working on Linux, with java 8/11, with this module's updated dependencies")
-// FIXME java11 not working on Linux with Java 8/11, with this module's updated dependencies
 public class ConsumeWindowsEventLogTest {
     @Mock
     Kernel32 kernel32;
