@@ -140,8 +140,7 @@ language governing permissions and limitations under the License. -->
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <type>pom</type>
+            <artifactId>groovy-xml</artifactId>
         </dependency>
     </dependencies>
 

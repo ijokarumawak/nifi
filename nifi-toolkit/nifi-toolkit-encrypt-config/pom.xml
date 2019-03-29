@@ -109,8 +109,12 @@
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <type>pom</type>
+            <artifactId>groovy-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-cli-commons</artifactId>
+            <version>2.5.4</version>
         </dependency>
     </dependencies>
 
