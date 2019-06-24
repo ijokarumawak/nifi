@@ -21,13 +21,20 @@ import com.sun.jna.Native;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import org.junit.Assert;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Can't even use the JNA interface classes if the native library won't load.  This is a workaround to allow mocking them for unit tests.
@@ -39,7 +46,19 @@ public abstract class JNAOverridingJUnitRunner extends Runner {
 
     public JNAOverridingJUnitRunner(Class<?> klass) throws InitializationError {
         Map<String, Map<String, String>> classOverrideMap = getClassOverrideMap();
-        ClassLoader jnaMockClassloader = new ClassLoader(JNAOverridingJUnitRunner.class.getClassLoader()) {
+        String classpath = System.getProperty("java.class.path");
+        URL[] result = Pattern.compile(File.pathSeparator).splitAsStream(classpath).map(Path::of).map(Path::toAbsolutePath).map(Path::toUri)
+                .map(uri -> {
+                    URL url = null;
+                    try {
+                        url = uri.toURL();
+                    } catch (MalformedURLException e) {
+                        Assert.fail(String.format("Unable to create URL for classpath entry '%s'", uri));
+                    }
+                    return url;
+                })
+                .toArray(URL[]::new);
+        ClassLoader jnaMockClassloader = new URLClassLoader(result, null) {
             @Override
             protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
                 Map<String, String> classOverrides = classOverrideMap.get(name);
