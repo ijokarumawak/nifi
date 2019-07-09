@@ -888,7 +888,7 @@ public interface SiteToSiteClient extends Closeable {
             if (keyManagerFactory != null && trustManagerFactory != null) {
                 try {
                     // initialize the ssl context
-                    final SSLContext sslContext = SSLContext.getInstance("TLSv1.2"); // FIXME TLSv1.3 not working under Java 11, setting explicitly to TLSv1.2 works.
+                    final SSLContext sslContext = SSLContext.getInstance("TLSv1.3"); // FIXME TLSv1.3 not working under Java 11, setting explicitly to TLSv1.2 works.
                     sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
                     sslContext.getDefaultSSLParameters().setNeedClientAuth(true);
 
