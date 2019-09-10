@@ -1,0 +1,31 @@
+-- ROOT: ORG-APACHE-NIFI-JASN1-EXAMPLE.BasicTypes
+-- PROTOCOL: ORG-APACHE-NIFI-AJSN1-EXAMPLE
+-- ENDIAN: LITTLE
+
+ORG-APACHE-NIFI-JASN1-EXAMPLE
+
+DEFINITIONS IMPLICIT TAGS    ::=
+
+BEGIN
+
+BasicTypes            ::= SEQUENCE
+{
+    b         [0] BOOLEAN,
+    i         [1] INTEGER,
+    octStr    [2] OCTET STRING (SIZE (1..10))
+}
+
+Composite             ::= SEQUENCE
+{
+    child     [0] BasicTypes,
+    children  [1] SEQUENCE OF BasicTypes
+}
+
+Recursive             ::= SEQUENCE
+{
+    name      [0] IA5String,
+    parent    [1] Recursive,
+    children  [2] SEQUENCE OF Recursive
+}
+
+END
