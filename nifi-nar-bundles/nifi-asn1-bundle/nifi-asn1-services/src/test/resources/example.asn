@@ -18,7 +18,8 @@ BasicTypes            ::= SEQUENCE
 Composite             ::= SEQUENCE
 {
     child     [0] BasicTypes,
-    children  [1] SEQUENCE OF BasicTypes
+    children  [1] SEQUENCE OF BasicTypes,
+    numbers   [2] SEQUENCE OF INTEGER
 }
 
 Recursive             ::= SEQUENCE

@@ -149,11 +149,138 @@ public class Composite implements BerType, Serializable {
 
 	}
 
+	public static class Numbers implements BerType, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		public static final BerTag tag = new BerTag(BerTag.UNIVERSAL_CLASS, BerTag.CONSTRUCTED, 16);
+		public byte[] code = null;
+		private List<BerInteger> seqOf = null;
+
+		public Numbers() {
+			seqOf = new ArrayList<BerInteger>();
+		}
+
+		public Numbers(byte[] code) {
+			this.code = code;
+		}
+
+		public List<BerInteger> getBerInteger() {
+			if (seqOf == null) {
+				seqOf = new ArrayList<BerInteger>();
+			}
+			return seqOf;
+		}
+
+		public int encode(OutputStream reverseOS) throws IOException {
+			return encode(reverseOS, true);
+		}
+
+		public int encode(OutputStream reverseOS, boolean withTag) throws IOException {
+
+			if (code != null) {
+				for (int i = code.length - 1; i >= 0; i--) {
+					reverseOS.write(code[i]);
+				}
+				if (withTag) {
+					return tag.encode(reverseOS) + code.length;
+				}
+				return code.length;
+			}
+
+			int codeLength = 0;
+			for (int i = (seqOf.size() - 1); i >= 0; i--) {
+				codeLength += seqOf.get(i).encode(reverseOS, true);
+			}
+
+			codeLength += BerLength.encodeLength(reverseOS, codeLength);
+
+			if (withTag) {
+				codeLength += tag.encode(reverseOS);
+			}
+
+			return codeLength;
+		}
+
+		public int decode(InputStream is) throws IOException {
+			return decode(is, true);
+		}
+
+		public int decode(InputStream is, boolean withTag) throws IOException {
+			int codeLength = 0;
+			int subCodeLength = 0;
+			if (withTag) {
+				codeLength += tag.decodeAndCheck(is);
+			}
+
+			BerLength length = new BerLength();
+			codeLength += length.decode(is);
+			int totalLength = length.val;
+
+			while (subCodeLength < totalLength) {
+				BerInteger element = new BerInteger();
+				subCodeLength += element.decode(is, true);
+				seqOf.add(element);
+			}
+			if (subCodeLength != totalLength) {
+				throw new IOException("Decoded SequenceOf or SetOf has wrong length. Expected " + totalLength + " but has " + subCodeLength);
+
+			}
+			codeLength += subCodeLength;
+
+			return codeLength;
+		}
+
+		public void encodeAndSave(int encodingSizeGuess) throws IOException {
+			ReverseByteArrayOutputStream reverseOS = new ReverseByteArrayOutputStream(encodingSizeGuess);
+			encode(reverseOS, false);
+			code = reverseOS.getArray();
+		}
+
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			appendAsString(sb, 0);
+			return sb.toString();
+		}
+
+		public void appendAsString(StringBuilder sb, int indentLevel) {
+
+			sb.append("{\n");
+			for (int i = 0; i < indentLevel + 1; i++) {
+				sb.append("\t");
+			}
+			if (seqOf == null) {
+				sb.append("null");
+			}
+			else {
+				Iterator<BerInteger> it = seqOf.iterator();
+				if (it.hasNext()) {
+					sb.append(it.next());
+					while (it.hasNext()) {
+						sb.append(",\n");
+						for (int i = 0; i < indentLevel + 1; i++) {
+							sb.append("\t");
+						}
+						sb.append(it.next());
+					}
+				}
+			}
+
+			sb.append("\n");
+			for (int i = 0; i < indentLevel; i++) {
+				sb.append("\t");
+			}
+			sb.append("}");
+		}
+
+	}
+
 	public static final BerTag tag = new BerTag(BerTag.UNIVERSAL_CLASS, BerTag.CONSTRUCTED, 16);
 
 	public byte[] code = null;
 	private BasicTypes child = null;
 	private Children children = null;
+	private Numbers numbers = null;
 	
 	public Composite() {
 	}
@@ -178,6 +305,14 @@ public class Composite implements BerType, Serializable {
 		return children;
 	}
 
+	public void setNumbers(Numbers numbers) {
+		this.numbers = numbers;
+	}
+
+	public Numbers getNumbers() {
+		return numbers;
+	}
+
 	public int encode(OutputStream reverseOS) throws IOException {
 		return encode(reverseOS, true);
 	}
@@ -195,6 +330,11 @@ public class Composite implements BerType, Serializable {
 		}
 
 		int codeLength = 0;
+		codeLength += numbers.encode(reverseOS, false);
+		// write tag: CONTEXT_CLASS, CONSTRUCTED, 2
+		reverseOS.write(0xA2);
+		codeLength += 1;
+		
 		codeLength += children.encode(reverseOS, false);
 		// write tag: CONTEXT_CLASS, CONSTRUCTED, 1
 		reverseOS.write(0xA1);
@@ -247,6 +387,15 @@ public class Composite implements BerType, Serializable {
 		if (berTag.equals(BerTag.CONTEXT_CLASS, BerTag.CONSTRUCTED, 1)) {
 			children = new Children();
 			subCodeLength += children.decode(is, false);
+			subCodeLength += berTag.decode(is);
+		}
+		else {
+			throw new IOException("Tag does not match the mandatory sequence element tag.");
+		}
+		
+		if (berTag.equals(BerTag.CONTEXT_CLASS, BerTag.CONSTRUCTED, 2)) {
+			numbers = new Numbers();
+			subCodeLength += numbers.decode(is, false);
 			if (subCodeLength == totalLength) {
 				return codeLength;
 			}
@@ -293,6 +442,18 @@ public class Composite implements BerType, Serializable {
 		}
 		else {
 			sb.append("children: <empty-required-field>");
+		}
+		
+		sb.append(",\n");
+		for (int i = 0; i < indentLevel + 1; i++) {
+			sb.append("\t");
+		}
+		if (numbers != null) {
+			sb.append("numbers: ");
+			numbers.appendAsString(sb, indentLevel + 1);
+		}
+		else {
+			sb.append("numbers: <empty-required-field>");
 		}
 		
 		sb.append("\n");

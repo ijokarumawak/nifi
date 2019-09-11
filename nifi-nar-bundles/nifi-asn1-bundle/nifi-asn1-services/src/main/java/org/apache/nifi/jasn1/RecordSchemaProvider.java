@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -81,7 +80,7 @@ public class RecordSchemaProvider {
             return RecordFieldType.BOOLEAN.getDataType();
 
         } else if (BerInteger.class.isAssignableFrom(type)) {
-            return RecordFieldType.INT.getDataType();
+            return RecordFieldType.BIGINT.getDataType();
 
         } else if (BerOctetString.class.isAssignableFrom(type)) {
             return RecordFieldType.ARRAY.getArrayDataType(RecordFieldType.BYTE.getDataType());
@@ -92,12 +91,13 @@ public class RecordSchemaProvider {
                 try {
                     final Field seqOfField = type.getDeclaredField("seqOf");
                     if (seqOfField.getType().isAssignableFrom(List.class)) {
-                        final ParameterizedType seqOfGen = (ParameterizedType) seqOfField.getGenericType();
-                        final Class seqOf = (Class) seqOfGen.getActualTypeArguments()[0];
+                        final Class seqOf = JASN1Utils.getSeqOfElementType(seqOfField);
                         return RecordFieldType.ARRAY.getArrayDataType(getDataType(seqOf));
                     }
                 } catch (NoSuchFieldException e) {
-                    LOG.trace("{} has enclosing class {}, but doesn't have seqOf field", type, type.getEnclosingClass());
+                    // Unexpected situation.
+                    throw new RuntimeException(type + " has enclosing class "
+                        + type.getEnclosingClass() + ", but doesn't have seqOf field");
                 }
             }
         }

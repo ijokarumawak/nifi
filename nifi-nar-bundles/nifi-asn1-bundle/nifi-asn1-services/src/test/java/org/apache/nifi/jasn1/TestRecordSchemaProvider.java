@@ -32,7 +32,7 @@ public class TestRecordSchemaProvider {
 
         final Optional<RecordField> iField = schema.getField("i");
         assertTrue(iField.isPresent());
-        assertEquals(RecordFieldType.INT.getDataType(), iField.get().getDataType());
+        assertEquals(RecordFieldType.BIGINT.getDataType(), iField.get().getDataType());
 
         final Optional<RecordField> octStrField = schema.getField("octStr");
         assertTrue(octStrField.isPresent());
