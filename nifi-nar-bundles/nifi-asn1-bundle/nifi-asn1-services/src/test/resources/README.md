@@ -5,7 +5,7 @@ The unit tests and generated sources rely on the definition of `example.asn` fil
 1. Generate source files for unit test:
 
     ```
-    $ jasn1/bin/jasn1-compiler -f example.asn -o ./../java
+    $ jasn1/bin/jasn1-compiler -f nifi-nar-bundles/nifi-asn1-bundle/nifi-asn1-services/src/test/resources/example.asn -o nifi-nar-bundles/nifi-asn1-bundle/nifi-asn1-services/src/test/java
     ```
 
 2. To generate 'test/resources/examples/*.dat' files, execute `ExampleDataGenerator`.

@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -58,12 +57,7 @@ public class RecordSchemaProvider {
     }
 
     private RecordField toRecordField(Field field) {
-        if ((field.getModifiers() & Modifier.STATIC) == Modifier.STATIC) {
-            // Filter out any static fields.
-            return null;
-        }
-
-        if ("code".equals(field.getName())) {
+        if (!JASN1Utils.isRecordField(field)) {
             return null;
         }
 
@@ -86,19 +80,10 @@ public class RecordSchemaProvider {
             return RecordFieldType.ARRAY.getArrayDataType(RecordFieldType.BYTE.getDataType());
 
         } else {
-            if (type.getEnclosingClass() != null) {
-                // jASN1 generates an inner class having a List field named 'seqOf' to denote 'SEQ OF X'.
-                try {
-                    final Field seqOfField = type.getDeclaredField("seqOf");
-                    if (seqOfField.getType().isAssignableFrom(List.class)) {
-                        final Class seqOf = JASN1Utils.getSeqOfElementType(seqOfField);
-                        return RecordFieldType.ARRAY.getArrayDataType(getDataType(seqOf));
-                    }
-                } catch (NoSuchFieldException e) {
-                    // Unexpected situation.
-                    throw new RuntimeException(type + " has enclosing class "
-                        + type.getEnclosingClass() + ", but doesn't have seqOf field");
-                }
+            final Field seqOfField = JASN1Utils.getSeqOfField(type);
+            if (seqOfField != null) {
+                final Class seqOf = JASN1Utils.getSeqOfElementType(seqOfField);
+                return RecordFieldType.ARRAY.getArrayDataType(getDataType(seqOf));
             }
         }
 

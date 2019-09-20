@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -30,7 +29,7 @@ public class TestJASN1RecordReader {
     public void testBasicTypes() throws Exception {
         try (final InputStream input = TestJASN1RecordReader.class.getResourceAsStream("/examples/basic-types.dat")) {
 
-            final JASN1RecordReader reader = new JASN1RecordReader("org.apache.nifi.jasn1.example.BasicTypes",
+            final JASN1RecordReader reader = new JASN1RecordReader("org.apache.nifi.jasn1.example.BasicTypes", null,
                 new RecordSchemaProvider(), Thread.currentThread().getContextClassLoader(),
                 input, new MockComponentLog("id", new JASN1Reader()));
 
@@ -49,12 +48,11 @@ public class TestJASN1RecordReader {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testComposite() throws Exception {
         try (final InputStream input = TestJASN1RecordReader.class.getResourceAsStream("/examples/composite.dat")) {
 
-            final JASN1RecordReader reader = new JASN1RecordReader("org.apache.nifi.jasn1.example.Composite",
+            final JASN1RecordReader reader = new JASN1RecordReader("org.apache.nifi.jasn1.example.Composite", null,
                 new RecordSchemaProvider(), Thread.currentThread().getContextClassLoader(),
                 input, new MockComponentLog("id", new JASN1Reader()));
 
@@ -91,6 +89,16 @@ public class TestJASN1RecordReader {
             assertEquals(new BigInteger("1"), numbers[1]);
             assertEquals(new BigInteger("2"), numbers[2]);
             assertEquals(new BigInteger("3"), numbers[3]);
+
+            // Assert unordered
+            final Object[] unordered = record.getAsArray("unordered");
+            assertEquals(2, unordered.length);
+            for (int i = 0; i < unordered.length; i++) {
+                child = (Record) unordered[i];
+                assertEquals(i % 2 == 0, child.getAsBoolean("b"));
+                assertEquals(i, child.getAsInt("i").intValue());
+                assertArrayEquals(new byte[]{(byte) i, (byte) i, (byte) i}, (byte[]) child.getValue("octStr"));
+            }
 
             record = reader.nextRecord(true, false);
             assertNull(record);

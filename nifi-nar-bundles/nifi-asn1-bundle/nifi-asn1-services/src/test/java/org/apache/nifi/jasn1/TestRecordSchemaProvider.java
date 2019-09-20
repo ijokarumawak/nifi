@@ -65,6 +65,17 @@ public class TestRecordSchemaProvider {
         assertEquals("BasicTypes", childSchema.getSchemaName().orElse(null));
         assertEquals("org.apache.nifi.jasn1.example", childSchema.getSchemaNamespace().orElse(null));
 
+        // Unordered should be an array of records.
+        final Optional<RecordField> unorderedField = schema.getField("unordered");
+        assertTrue(unorderedField.isPresent());
+        final DataType unorderedDataType = unorderedField.get().getDataType();
+        assertEquals(RecordFieldType.ARRAY.getArrayDataType(RecordFieldType.RECORD.getDataType()), unorderedDataType);
+        final DataType unorderedElementDataType = ((ArrayDataType) unorderedDataType).getElementType();
+        assertEquals(RecordFieldType.RECORD.getDataType(), unorderedElementDataType);
+        childSchema = ((RecordDataType) unorderedElementDataType).getChildSchema();
+        assertEquals("BasicTypes", childSchema.getSchemaName().orElse(null));
+        assertEquals("org.apache.nifi.jasn1.example", childSchema.getSchemaNamespace().orElse(null));
+
     }
 
 

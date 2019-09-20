@@ -19,8 +19,11 @@ Composite             ::= SEQUENCE
 {
     child     [0] BasicTypes,
     children  [1] SEQUENCE OF BasicTypes,
-    numbers   [2] SEQUENCE OF INTEGER
+    numbers   [2] SEQUENCE OF INTEGER,
+    unordered [3] BasicTypeSet
 }
+
+BasicTypeSet          ::= SET OF BasicTypes
 
 Recursive             ::= SEQUENCE
 {

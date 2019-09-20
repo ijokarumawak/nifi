@@ -4,6 +4,7 @@ import com.beanit.jasn1.ber.ReverseByteArrayOutputStream;
 import com.beanit.jasn1.ber.types.BerBoolean;
 import com.beanit.jasn1.ber.types.BerInteger;
 import com.beanit.jasn1.ber.types.BerOctetString;
+import org.apache.nifi.jasn1.example.BasicTypeSet;
 import org.apache.nifi.jasn1.example.BasicTypes;
 import org.apache.nifi.jasn1.example.Composite;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -72,9 +72,20 @@ public class ExampleDataGenerator {
             numbers.getBerInteger().addAll(IntStream.range(0, 4)
                 .mapToObj(BerInteger::new).collect(Collectors.toList()));
 
+            final BasicTypeSet unordered = new BasicTypeSet();
+            composite.setUnordered(unordered);
+            for (int i = 0; i < 2; i++) {
+                child = new BasicTypes();
+                child.setB(new BerBoolean(i % 2 == 0));
+                child.setI(new BerInteger(i));
+                child.setOctStr(new BerOctetString(new byte[]{(byte) i, (byte) i, (byte) i}));
+                unordered.getBasicTypes().add(child);
+            }
+
             final int encoded = composite.encode(rev);
             out.write(rev.getArray(), 0, encoded);
             LOG.info("Generated {} bytes to {}", encoded, file);
+
         }
     }
 }

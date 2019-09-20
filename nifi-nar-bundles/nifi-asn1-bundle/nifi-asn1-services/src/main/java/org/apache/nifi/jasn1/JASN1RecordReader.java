@@ -14,23 +14,30 @@ import org.apache.nifi.serialization.record.RecordField;
 import org.apache.nifi.serialization.record.RecordFieldType;
 import org.apache.nifi.serialization.record.RecordSchema;
 import org.apache.nifi.serialization.record.type.ArrayDataType;
+import org.apache.nifi.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class JASN1RecordReader implements RecordReader {
 
     private final Class<? extends BerType> rootClass;
+    private final String recordField;
     private final RecordSchemaProvider schemaProvider;
     private final ClassLoader classLoader;
     private final InputStream inputStream;
     private final ComponentLog logger;
 
     private BerType model;
+    private List<BerType> recordModels;
+    private Iterator<BerType> recordModelIterator;
 
     private <T> T withClassLoader(Supplier<T> supplier) {
         final ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
@@ -48,7 +55,8 @@ public class JASN1RecordReader implements RecordReader {
     }
 
     @SuppressWarnings("unchecked")
-    public JASN1RecordReader(String rootClassName, RecordSchemaProvider schemaProvider, ClassLoader classLoader,
+    public JASN1RecordReader(String rootClassName, String recordField,
+                             RecordSchemaProvider schemaProvider, ClassLoader classLoader,
                              InputStream inputStream, ComponentLog logger) {
 
         this.schemaProvider = schemaProvider;
@@ -56,6 +64,7 @@ public class JASN1RecordReader implements RecordReader {
         this.inputStream = inputStream;
         this.logger = logger;
 
+        this.recordField = recordField;
         this.rootClass = withClassLoader(() -> {
             try {
                 return (Class<? extends BerType>) classLoader.loadClass(rootClassName);
@@ -65,6 +74,7 @@ public class JASN1RecordReader implements RecordReader {
         });
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Record nextRecord(boolean coerceTypes, boolean dropUnknownFields) throws IOException, MalformedRecordException {
 
@@ -78,15 +88,35 @@ public class JASN1RecordReader implements RecordReader {
 
                 try {
                     final int decode = model.decode(inputStream);
-                    logger.debug("Decoded {} bytes into {}", new Object[]{decode, model});
+                    logger.debug("Decoded {} bytes into {}", new Object[]{decode, model.getClass()});
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to decode " + rootClass.getCanonicalName(), e);
                 }
 
-                return convertBerRecord(model);
+                if (StringUtils.isEmpty(recordField)) {
+                    recordModels = Collections.singletonList(model);
+                } else {
+                    try {
+                        final Method recordModelGetter = model.getClass().getMethod(toGetterMethod(recordField));
+                        final BerType readPointModel = (BerType) recordModelGetter.invoke(model);
+                        final Field seqOfField = JASN1Utils.getSeqOfField(readPointModel.getClass());
+                        if (seqOfField != null) {
+                            final Class seqOf = JASN1Utils.getSeqOfElementType(seqOfField);
+                            recordModels = (List<BerType>) invokeGetter(readPointModel, toGetterMethod(seqOf.getSimpleName()));
+                        } else {
+                            recordModels = Collections.singletonList(readPointModel);
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
 
+                recordModelIterator = recordModels.iterator();
+            }
+
+            if (recordModelIterator.hasNext()) {
+                return convertBerRecord(recordModelIterator.next());
             } else {
-                // A ASN1 input only has 1 root model. Return null for the 2nd call or later to indicate there's no more record.
                 return null;
             }
 
@@ -98,7 +128,7 @@ public class JASN1RecordReader implements RecordReader {
     }
 
     @SuppressWarnings("unchecked")
-    private Object convertBerValue(String name, DataType dataType, Object value) {
+    private Object convertBerValue(String name, DataType dataType, BerType instance, Object value) {
         if (value instanceof BerBoolean) {
             return ((BerBoolean) value).value;
 
@@ -117,7 +147,12 @@ public class JASN1RecordReader implements RecordReader {
         } else if (value instanceof BerType) {
 
             if (RecordFieldType.ARRAY.equals(dataType.getFieldType())) {
-                final BerType seqOfContainer = (BerType) invokeGetter(model, toGetterMethod(name));
+                // If the field is declared with a direct SEQUENCE OF, then this value is a Parent$Children innerclass,
+                // in such a case, use the parent instance to get the seqOfContainer.
+                // Otherwise, the value is a separated class holding only seqOf field.
+                final BerType seqOfContainer = instance.getClass().equals(value.getClass().getEnclosingClass())
+                    ? (BerType) invokeGetter(instance, toGetterMethod(name))
+                    : (BerType) value;
                 if (seqOfContainer == null) {
                     return null;
                 }
@@ -135,7 +170,7 @@ public class JASN1RecordReader implements RecordReader {
 
                 final DataType elementType = ((ArrayDataType) dataType).getElementType();
                 return ((List<BerType>) invokeGetter(seqOfContainer, getterMethod)).stream()
-                    .map(v -> convertBerValue(name, elementType, v)).toArray();
+                    .map(v -> convertBerValue(name, elementType, (BerType) value, v)).toArray();
 
             } else {
                 return convertBerRecord((BerType) value);
@@ -152,7 +187,7 @@ public class JASN1RecordReader implements RecordReader {
 
         for (RecordField field : recordSchema.getFields()) {
             final Object value = invokeGetter(model, toGetterMethod(field.getFieldName()));
-            record.setValue(field, convertBerValue(field.getFieldName(), field.getDataType(), value));
+            record.setValue(field, convertBerValue(field.getFieldName(), field.getDataType(), model, value));
         }
 
         return record;
@@ -166,7 +201,7 @@ public class JASN1RecordReader implements RecordReader {
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to " + operation, e);
         }
-        logger.debug("{}={}", new Object[]{operation, value});
+        logger.trace("{}={}", new Object[]{operation, value});
         return value;
     }
 

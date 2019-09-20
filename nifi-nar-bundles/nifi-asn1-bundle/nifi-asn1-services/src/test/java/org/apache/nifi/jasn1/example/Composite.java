@@ -281,6 +281,7 @@ public class Composite implements BerType, Serializable {
 	private BasicTypes child = null;
 	private Children children = null;
 	private Numbers numbers = null;
+	private BasicTypeSet unordered = null;
 	
 	public Composite() {
 	}
@@ -313,6 +314,14 @@ public class Composite implements BerType, Serializable {
 		return numbers;
 	}
 
+	public void setUnordered(BasicTypeSet unordered) {
+		this.unordered = unordered;
+	}
+
+	public BasicTypeSet getUnordered() {
+		return unordered;
+	}
+
 	public int encode(OutputStream reverseOS) throws IOException {
 		return encode(reverseOS, true);
 	}
@@ -330,6 +339,11 @@ public class Composite implements BerType, Serializable {
 		}
 
 		int codeLength = 0;
+		codeLength += unordered.encode(reverseOS, false);
+		// write tag: CONTEXT_CLASS, CONSTRUCTED, 3
+		reverseOS.write(0xA3);
+		codeLength += 1;
+		
 		codeLength += numbers.encode(reverseOS, false);
 		// write tag: CONTEXT_CLASS, CONSTRUCTED, 2
 		reverseOS.write(0xA2);
@@ -396,6 +410,15 @@ public class Composite implements BerType, Serializable {
 		if (berTag.equals(BerTag.CONTEXT_CLASS, BerTag.CONSTRUCTED, 2)) {
 			numbers = new Numbers();
 			subCodeLength += numbers.decode(is, false);
+			subCodeLength += berTag.decode(is);
+		}
+		else {
+			throw new IOException("Tag does not match the mandatory sequence element tag.");
+		}
+		
+		if (berTag.equals(BerTag.CONTEXT_CLASS, BerTag.CONSTRUCTED, 3)) {
+			unordered = new BasicTypeSet();
+			subCodeLength += unordered.decode(is, false);
 			if (subCodeLength == totalLength) {
 				return codeLength;
 			}
@@ -454,6 +477,18 @@ public class Composite implements BerType, Serializable {
 		}
 		else {
 			sb.append("numbers: <empty-required-field>");
+		}
+		
+		sb.append(",\n");
+		for (int i = 0; i < indentLevel + 1; i++) {
+			sb.append("\t");
+		}
+		if (unordered != null) {
+			sb.append("unordered: ");
+			unordered.appendAsString(sb, indentLevel + 1);
+		}
+		else {
+			sb.append("unordered: <empty-required-field>");
 		}
 		
 		sb.append("\n");
