@@ -29,7 +29,9 @@ import java.util.function.Supplier;
 public class JASN1RecordReader implements RecordReader {
 
     private final Class<? extends BerType> rootClass;
+    private final Class<? extends BerType> recordModelClass;
     private final String recordField;
+    private final Field seqOfField;
     private final RecordSchemaProvider schemaProvider;
     private final ClassLoader classLoader;
     private final InputStream inputStream;
@@ -72,6 +74,25 @@ public class JASN1RecordReader implements RecordReader {
                 throw new RuntimeException("The root class " + rootClassName + " was not found.", e);
             }
         });
+
+        if (StringUtils.isEmpty(recordField)) {
+            recordModelClass = rootClass;
+            seqOfField = null;
+        } else {
+            try {
+                final Method recordModelGetter = rootClass.getMethod(toGetterMethod(recordField));
+                final Class<?> readPointType = recordModelGetter.getReturnType();
+                seqOfField = JASN1Utils.getSeqOfField(readPointType);
+                if (seqOfField != null) {
+                    recordModelClass = JASN1Utils.getSeqOfElementType(seqOfField);
+                } else {
+                    recordModelClass = (Class<? extends BerType>) readPointType;
+                }
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("Failed to get record model class due to " + e, e);
+            }
+        }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -97,17 +118,16 @@ public class JASN1RecordReader implements RecordReader {
                     recordModels = Collections.singletonList(model);
                 } else {
                     try {
-                        final Method recordModelGetter = model.getClass().getMethod(toGetterMethod(recordField));
+                        final Method recordModelGetter = rootClass.getMethod(toGetterMethod(recordField));
                         final BerType readPointModel = (BerType) recordModelGetter.invoke(model);
-                        final Field seqOfField = JASN1Utils.getSeqOfField(readPointModel.getClass());
                         if (seqOfField != null) {
                             final Class seqOf = JASN1Utils.getSeqOfElementType(seqOfField);
                             recordModels = (List<BerType>) invokeGetter(readPointModel, toGetterMethod(seqOf.getSimpleName()));
                         } else {
                             recordModels = Collections.singletonList(readPointModel);
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException("Failed to get record models due to " + e, e);
                     }
                 }
 
@@ -207,7 +227,7 @@ public class JASN1RecordReader implements RecordReader {
 
     @Override
     public RecordSchema getSchema() throws MalformedRecordException {
-        return withClassLoader(() -> schemaProvider.get(rootClass));
+        return withClassLoader(() -> schemaProvider.get(recordModelClass));
     }
 
     @Override
